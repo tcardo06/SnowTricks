@@ -1,0 +1,12 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ trick.name }} - Details{% endblock %}
+
+{% block body %}
+<h1>{{ trick.name }}</h1>
+<p>{{ trick.description }}</p>
+<p><strong>Group:</strong> {{ trick.groupName }}</p>
+<p><strong>Created At:</strong> {{ trick.createdAt|date('Y-m-d H:i') }}</p>
+
+<a href="{{ path('home') }}">Back to Homepage</a>
+{% endblock %}

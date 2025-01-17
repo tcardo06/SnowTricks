@@ -1,0 +1,25 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Inscription{% endblock %}
+
+{% block body %}
+<div class="d-flex justify-content-center align-items-center vh-100">
+    <div class="card shadow p-5" style="width: 100%; max-width: 450px; border-radius: 15px;">
+        <h1 class="text-center mb-3">Inscription</h1>
+        <p class="text-center text-muted mb-4">
+            Bienvenue sur le site SnowTricks ! Créez votre compte pour accéder à toutes nos fonctionnalités.
+        </p>
+        {{ form_start(form, { 'attr': { 'class': 'needs-validation' } }) }}
+            <div class="mb-3">
+                {{ form_row(form.username, { 'attr': { 'class': 'form-control', 'placeholder': 'Nom d\'utilisateur' } }) }}
+            </div>
+            <div class="mb-3">
+                {{ form_row(form.email, { 'attr': { 'class': 'form-control', 'placeholder': 'Adresse e-mail' } }) }}
+            </div>
+            <div class="mb-4">
+                {{ form_row(form.password, { 'attr': { 'class': 'form-control', 'placeholder': 'Mot de passe' } }) }}
+            </div>
+        {{ form_end(form) }}
+    </div>
+</div>
+{% endblock %}

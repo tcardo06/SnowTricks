@@ -11,7 +11,9 @@
 <body class="{% block body_class %}default-body{% endblock %}">
     <!-- Flash Messages -->
     {% for label, messages in app.flashes %}
-        <div class="alert alert-{{ label }} alert-dismissible fade show position-absolute top-0 start-50 translate-middle-x mt-3" role="alert" style="width: 90%; max-width: 600px; z-index: 1050;">
+        <div class="alert alert-{{ label }} alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-5"
+             style="margin-top: 100px !IMPORTANT; z-index: 1050; width: 90%; max-width: 600px;"
+             role="alert">
             {% for message in messages %}
                 {{ message }}
             {% endfor %}
@@ -20,10 +22,11 @@
     {% endfor %}
 
     <!-- Header/Navbar -->
-    <header class="navbar navbar-expand-lg navbar-light">
+    <header class="navbar navbar-expand-lg navbar-light bg-light fixed-top shadow">
         <div class="container">
             <a class="navbar-brand" href="{{ path('home') }}">SnowTricks</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
@@ -49,7 +52,7 @@
     </header>
 
     <!-- Main Content -->
-    <div class="container {% block container_class %}mt-5{% endblock %}">
+    <div class="container {% block container_class %}mt-5 pt-5{% endblock %}">
         {% block body %}{% endblock %}
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>

@@ -1,9 +1,26 @@
 home:
     path: /
     controller: App\Controller\HomeController::index
+
 trick_details:
     path: /trick/{slug}
     controller: App\Controller\TrickController::details
+
 registration:
     path: /inscription
     controller: App\Controller\RegistrationController::register
+
+registration_confirmation:
+    path: /inscription/confirmation
+    controller: App\Controller\RegistrationController::confirmation
+
+verify_email:
+    path: /verify-email/{token}
+    controller: App\Controller\RegistrationController::verifyEmail
+
+app_login:
+    path: /connexion
+    controller: App\Controller\SecurityController::login
+
+app_logout:
+    path: /deconnexion

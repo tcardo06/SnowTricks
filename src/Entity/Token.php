@@ -39,7 +39,7 @@ class Token
     private $expiresAt;
 
     /**
-     * @ORM\ManyToOne(targetEntity=User::class, inversedBy="tokens", cascade={"remove"})
+     * @ORM\ManyToOne(targetEntity=User::class, inversedBy="tokens")
      * @ORM\JoinColumn(nullable=false, onDelete="CASCADE")
      */
     private $user;

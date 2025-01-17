@@ -2,6 +2,9 @@
 
 {% block title %}Inscription{% endblock %}
 
+{% block body_class %}no-padding-body{% endblock %}
+{% block container_class %}{% endblock %} {# Removes mt-5 #}
+
 {% block body %}
 <div class="d-flex justify-content-center align-items-center vh-100">
     <div class="card shadow p-5" style="width: 100%; max-width: 450px; border-radius: 15px;">
@@ -19,10 +22,8 @@
             <div class="mb-4">
                 {{ form_row(form.password, { 'attr': { 'class': 'form-control', 'placeholder': 'Mot de passe' } }) }}
             </div>
+            <button class="btn btn-primary w-100" type="submit">Créer un compte</button>
         {{ form_end(form) }}
-        <p class="text-center mt-3">
-            Vous avez déjà un compte ? <a href="{{ path('app_login') }}">Connectez-vous</a>
-        </p>
     </div>
 </div>
 {% endblock %}

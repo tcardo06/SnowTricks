@@ -1,6 +1,15 @@
-
 body {
     background-color: #f8f9fa;
+}
+
+body.default-body {
+    background-color: #f8f9fa;
+    padding-top: 70px;
+}
+
+body.no-padding-body {
+    background-color: #f8f9fa;
+    padding-top: 0;
 }
 
 h1 {
@@ -14,6 +23,46 @@ p {
     font-size: 1rem;
     color: #666666;
     text-align: center;
+}
+
+/* Header/Navbar Styles */
+.navbar {
+    position: fixed; /* Keeps the navbar fixed at the top */
+    top: 0;
+    width: 100%;
+    z-index: 1030; /* Keeps the navbar on top of other elements */
+    background-color: #ffffff;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid #ddd;
+}
+
+.navbar-brand {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #007bff;
+    text-transform: uppercase;
+}
+
+.navbar-brand:hover {
+    text-decoration: none;
+    color: #0056b3;
+}
+
+.navbar-nav .nav-item .nav-link {
+    color: #555555;
+    font-weight: 500;
+    font-size: 1rem;
+    padding: 10px 15px;
+    transition: color 0.3s ease;
+}
+
+.navbar-nav .nav-item .nav-link:hover {
+    color: #007bff;
+}
+
+.navbar-nav .nav-item .nav-link.active {
+    color: #0056b3;
+    font-weight: bold;
 }
 
 .card-img-top {

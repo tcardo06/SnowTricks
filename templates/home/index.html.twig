@@ -5,7 +5,7 @@
 {% block body %}
 <h1 class="text-center my-4">Welcome to SnowTricks!</h1>
 
-<div class="row row-cols-1 row-cols-md-3 g-4">
+<div id="tricks-container" class="row row-cols-1 row-cols-md-3 g-4">
     {% for trick in tricks %}
         <div class="col">
             <div class="card">
@@ -14,10 +14,7 @@
                     <h5 class="card-title">
                         <a href="{{ path('trick_details', { slug: trick.slug }) }}">{{ trick.name }}</a>
                     </h5>
-                    <div class="card-icons">
-                        <i class="bi bi-pencil-fill" title="Edit"></i>
-                        <i class="bi bi-trash-fill" title="Delete"></i>
-                    </div>
+                    <p>{{ trick.description }}</p>
                 </div>
             </div>
         </div>
@@ -25,6 +22,28 @@
 </div>
 
 <div class="text-center mt-4">
-    <button id="load-more" class="btn btn-primary">Load More</button>
+    <button id="load-more" class="btn btn-primary" data-offset="15">Load More</button>
 </div>
+
+<script>
+document.getElementById('load-more').addEventListener('click', function () {
+    const button = this;
+    const offset = button.getAttribute('data-offset');
+
+    fetch(`/load-more-tricks/${offset}`)
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById('tricks-container');
+            container.insertAdjacentHTML('beforeend', data.html);
+
+            button.setAttribute('data-offset', parseInt(offset) + 15);
+
+            if (!data.hasMore) {
+                button.style.display = 'none';
+            }
+        })
+        .catch(error => console.error('Error loading more tricks:', error));
+});
+
+</script>
 {% endblock %}

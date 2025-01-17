@@ -24,3 +24,9 @@ app_login:
 
 app_logout:
     path: /deconnexion
+
+load_more_tricks:
+    path: /load-more-tricks/{offset}
+    controller: App\Controller\HomeController::loadMore
+    requirements:
+        offset: \d+

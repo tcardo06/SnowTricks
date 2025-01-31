@@ -42,41 +42,47 @@ class SecurityController extends AbstractController
     }
 
     #[Route('/mot-de-passe-oublie', name: 'forgot_password')]
-    public function forgotPassword(Request $request, EntityManagerInterface $em, MailerInterface $mailer): Response
+    public function forgotPassword(Request $request, EntityManagerInterface $entityManager, MailerInterface $mailer): Response
     {
         if ($request->isMethod('POST')) {
-            $email = $request->request->get('email');
-            $user = $em->getRepository(User::class)->findOneBy(['email' => $email]);
-
-            if ($user) {
-                $token = new Token();
-                $token->setUser($user)
-                    ->setToken(bin2hex(random_bytes(32)))
-                    ->setType('password_reset')
-                    ->setExpiresAt((new \DateTime())->modify('+1 hour'));
-
-                $em->persist($token);
-                $em->flush();
-
-                // Send email
-                $emailMessage = (new TemplatedEmail())
-                    ->from('no-reply@snowtricks.com')
-                    ->to($user->getEmail())
-                    ->subject('Réinitialisation de votre mot de passe')
-                    ->htmlTemplate('emails/reset_password.html.twig')
-                    ->context([
-                        'resetLink' => $this->generateUrl('reset_password', ['token' => $token->getToken()], UrlGeneratorInterface::ABSOLUTE_URL),
-                    ]);
-
-                $mailer->send($emailMessage);
+            $username = $request->request->get('username');
+    
+            $user = $entityManager->getRepository(User::class)->findOneBy(['username' => $username]);
+    
+            if (!$user) {
+                $this->addFlash('danger', 'Aucun compte associé à ce nom d\'utilisateur.');
+                return $this->redirectToRoute('forgot_password');
             }
-
-            $this->addFlash('success', 'Si cet email est associé à un compte, vous recevrez un lien de réinitialisation.');
+    
+            // Generate a reset token
+            $token = new Token();
+            $token->setUser($user)
+                  ->setToken(bin2hex(random_bytes(32)))
+                  ->setType('password_reset')
+                  ->setExpiresAt((new \DateTime())->modify('+1 hour'));
+    
+            $entityManager->persist($token);
+            $entityManager->flush();
+    
+            // Send email with the reset link
+            $email = (new TemplatedEmail())
+                ->from('no-reply@snowtricks.com')
+                ->to($user->getEmail()) // Uses email from found user
+                ->subject('Réinitialisation de votre mot de passe')
+                ->htmlTemplate('emails/reset_password.html.twig')
+                ->context([
+                    'user' => $user,
+                    'resetLink' => $this->generateUrl('reset_password', ['token' => $token->getToken()], UrlGeneratorInterface::ABSOLUTE_URL),
+                ]);
+    
+            $mailer->send($email);
+    
+            $this->addFlash('success', 'Un e-mail de réinitialisation a été envoyé.');
             return $this->redirectToRoute('app_login');
         }
-
+    
         return $this->render('security/forgot_password.html.twig');
-    }
+    }    
 
     #[Route('/reinitialiser-mot-de-passe/{token}', name: 'reset_password')]
     public function resetPassword(string $token, Request $request, EntityManagerInterface $em, UserPasswordHasherInterface $passwordHasher): Response

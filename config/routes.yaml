@@ -30,3 +30,11 @@ load_more_tricks:
     controller: App\Controller\HomeController::loadMore
     requirements:
         offset: \d+
+
+forgot_password:
+    path: /mot-de-passe-oublie
+    controller: App\Controller\SecurityController::forgotPassword
+
+reset_password:
+    path: /reinitialiser-mot-de-passe/{token}
+    controller: App\Controller\SecurityController::resetPassword

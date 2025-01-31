@@ -44,6 +44,8 @@ class Token
      */
     private $user;
 
+    public const TYPE_PASSWORD_RESET = 'password_reset';
+
     public function getId(): ?int
     {
         return $this->id;

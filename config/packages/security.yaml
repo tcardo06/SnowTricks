@@ -7,33 +7,35 @@ security:
 
     # User Providers
     providers:
-        # Database-backed User provider
         app_user_provider:
             entity:
                 class: App\Entity\User
-                property: email # Use email for authentication
+                property: email
 
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
 
-        # Main firewall for the application
         main:
             lazy: true
             provider: app_user_provider
             custom_authenticator: App\Security\LoginFormAuthenticator
 
-            # Logout configuration
             logout:
                 path: app_logout
                 target: /
 
     access_control:
-        # Allow public access to specific routes
+        # Allow public access to homepage and trick details
+        - { path: ^/$, roles: PUBLIC_ACCESS }
+        - { path: ^/trick, roles: PUBLIC_ACCESS }
         - { path: ^/connexion, roles: PUBLIC_ACCESS }
         - { path: ^/inscription, roles: PUBLIC_ACCESS }
-        - { path: ^/, roles: ROLE_USER }
+        
+        # Protect admin/dashboard or future private pages
+        # - { path: ^/profile, roles: ROLE_USER }
+        # - { path: ^/dashboard, roles: ROLE_USER }
 
 when@test:
     security:

@@ -2,10 +2,10 @@
 
 {% block title %}Connexion{% endblock %}
 
-{% block body_class %}no-padding-body{% endblock %}
+{% block body_class %}centered-body{% endblock %}
 
 {% block body %}
-<div class="d-flex justify-content-center align-items-center vh-100">
+<div class="container-fluid d-flex justify-content-center align-items-center vh-100">
     <div class="card shadow p-5" style="width: 100%; max-width: 450px; border-radius: 15px;">
         <h1 class="text-center mb-3">Connexion</h1>
         <p class="text-center text-muted mb-4">
@@ -20,6 +20,9 @@
             </div>
             <button class="btn btn-primary w-100" type="submit">Se connecter</button>
         </form>
+        <p class="text-center mt-3">
+            <a href="{{ path('forgot_password') }}">Mot de passe oublié ?</a>
+        </p>
         <p class="text-center mt-3">
             Vous n'avez pas de compte ? <a href="{{ path('registration') }}">Inscrivez-vous</a>
         </p>

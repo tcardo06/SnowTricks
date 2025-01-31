@@ -1,0 +1,69 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Créer une nouvelle figure{% endblock %}
+
+{% block body_class %}no-padding-body{% endblock %}
+
+{% block body %}
+<div class="d-flex justify-content-center align-items-center vh-100">
+    <div class="card shadow p-5" style="width: 100%; max-width: 600px; border-radius: 15px;">
+        <h1 class="text-center mb-3">Créer une figure</h1>
+        <p class="text-center text-muted mb-4">Ajoutez une nouvelle figure de snowboard.</p>
+
+        {{ form_start(form, { 'attr': { 'class': 'needs-validation' } }) }}
+            <div class="mb-3">
+                {{ form_row(form.name, { 'attr': { 'class': 'form-control' } }) }}
+            </div>
+            <div class="mb-3">
+                {{ form_row(form.description, { 'attr': { 'class': 'form-control' } }) }}
+            </div>
+            <div class="mb-3">
+                {{ form_row(form.group_name, { 'attr': { 'class': 'form-control' } }) }}
+            </div>
+            <div class="mb-3">
+                {{ form_row(form.images, { 'attr': { 'class': 'form-control' } }) }}
+            </div>
+
+            <!-- Videos Section -->
+            {% set videoPrototype = form_widget(form.videos.vars.prototype, { 'attr': { 'class': 'form-control', 'rows': 3, 'placeholder': 'Collez ici le code embed de la vidéo' } }) %}
+            
+            <div class="mb-3" id="video-fields">
+                <label for="videos">Vidéos (balise embed)</label>
+                {% for videoField in form.videos %}
+                    <div class="d-flex align-items-center mb-2">
+                        {{ form_widget(videoField) }}
+                        <button type="button" class="btn btn-danger btn-sm ms-2 remove-video">X</button>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <button type="button" id="add-video" class="btn btn-secondary mt-2">Ajouter une vidéo</button>
+            <button class="btn btn-primary w-100 mt-3" type="submit">Créer la figure</button>
+        {{ form_end(form) }}
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const videoContainer = document.getElementById('video-fields');
+        const addVideoButton = document.getElementById('add-video');
+        let index = {{ form.videos|length }}; // Track the number of inputs
+        const prototypeTemplate = `{{ videoPrototype|e('js') }}`;
+
+        addVideoButton.addEventListener('click', function () {
+            const newForm = prototypeTemplate.replace(/__name__/g, index);
+            const div = document.createElement('div');
+            div.classList.add('d-flex', 'align-items-center', 'mb-2');
+            div.innerHTML = newForm + '<button type="button" class="btn btn-danger btn-sm ms-2 remove-video">X</button>';
+            videoContainer.appendChild(div);
+            index++;
+        });
+
+        videoContainer.addEventListener('click', function (event) {
+            if (event.target.classList.contains('remove-video')) {
+                event.target.parentElement.remove();
+            }
+        });
+    });
+</script>
+{% endblock %}

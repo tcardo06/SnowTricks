@@ -190,3 +190,8 @@ button.btn-primary {
 button.btn-primary:hover {
     background-color: #0056b3;
 }
+
+textarea.form-control {
+    min-height: 80px;
+    resize: vertical;
+}

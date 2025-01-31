@@ -3,17 +3,67 @@
 namespace App\Controller;
 
 use App\Entity\Trick;
+use App\Form\TrickType;
+use App\Entity\Video;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 class TrickController extends AbstractController
 {
-    #[Route('/trick/{slug}', name: 'trick_details')]
-    public function details(Trick $trick): Response
+    #[Route('/trick/create', name: 'trick_create')]
+    public function create(Request $request, EntityManagerInterface $entityManager): Response
     {
+        $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
+    
+        $trick = new Trick();
+        $form = $this->createForm(TrickType::class, $trick);
+        $form->handleRequest($request);
+    
+        if ($form->isSubmitted() && $form->isValid()) {
+            // Generate slug
+            $trick->setSlug(strtolower(str_replace(' ', '-', $trick->getName())));
+    
+            // Retrieve video embed codes manually
+            $videoEmbeds = $form->get('videos')->getData();
+            foreach ($videoEmbeds as $embedCode) {
+                if (!empty(trim($embedCode))) {  // Ensure non-empty input
+                    $video = new Video();
+                    $video->setEmbedCode($embedCode);
+                    $video->setTrick($trick); // Associate video with trick
+                    $trick->addVideo($video);
+                    $entityManager->persist($video);
+                }
+            }
+    
+            $entityManager->persist($trick);
+            $entityManager->flush();
+    
+            $this->addFlash('success', 'La figure a été ajoutée avec succès !');
+    
+            return $this->redirectToRoute('home');
+        }
+    
+        return $this->render('trick/create.html.twig', [
+            'form' => $form->createView(),
+        ]);
+    }       
+    
+    #[Route('/trick/{slug}', name: 'trick_details', requirements: ['slug' => '[a-z0-9-]+'])]
+    public function details(string $slug, EntityManagerInterface $entityManager): Response
+    {
+        // Fetch trick by slug
+        $trick = $entityManager->getRepository(Trick::class)->findOneBy(['slug' => $slug]);
+    
+        // If trick is not found, throw a 404
+        if (!$trick) {
+            throw $this->createNotFoundException('Trick not found.');
+        }
+    
         return $this->render('trick/details.html.twig', [
             'trick' => $trick,
         ]);
-    }    
+    }          
 }

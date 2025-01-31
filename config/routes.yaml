@@ -2,9 +2,7 @@ home:
     path: /
     controller: App\Controller\HomeController::index
 
-trick_details:
-    path: /trick/{slug}
-    controller: App\Controller\TrickController::details
+
 
 registration:
     path: /inscription
@@ -38,3 +36,18 @@ forgot_password:
 reset_password:
     path: /reinitialiser-mot-de-passe/{token}
     controller: App\Controller\SecurityController::resetPassword
+
+trick_create:
+    path: /trick/create
+    controller: App\Controller\TrickController::create
+    methods: [GET, POST]
+    
+trick_details:
+    path: /trick/{slug}
+    controller: App\Controller\TrickController::details
+    methods: [GET]
+    requirements:
+        slug: '[a-z0-9-]+'
+
+
+

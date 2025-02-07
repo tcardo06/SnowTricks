@@ -28,11 +28,34 @@
         <p><strong>Créé le:</strong> {{ trick.createdAt|date('d/m/Y H:i') }}</p>
     </div>
 
-    <!-- Media Gallery -->
+    <!-- Media Gallery (Images + Videos) -->
     <div class="media-gallery d-flex flex-wrap justify-content-center mt-3">
         {% for illustration in trick.illustrations %}
             {% if loop.index > 1 %} {# Skip first image since it's in the header #}
-                <img src="data:image/jpeg;base64,{{ illustration.getBase64Image() }}" class="media-item img-thumbnail mx-2" />
+                <div class="position-relative mx-2">
+                    <img src="data:image/jpeg;base64,{{ illustration.getBase64Image() }}" class="media-item img-thumbnail" />
+                    <!-- Small delete button -->
+                    <button type="button" class="btn btn-danger btn-sm delete-image-btn position-absolute top-0 end-0" data-bs-toggle="modal" data-bs-target="#deleteImageModal{{ illustration.id }}">❌</button>
+                </div>
+
+                <!-- Delete Confirmation Modal for each image -->
+                <div class="modal fade" id="deleteImageModal{{ illustration.id }}" tabindex="-1" aria-labelledby="deleteImageModalLabel{{ illustration.id }}" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="deleteImageModalLabel{{ illustration.id }}">Confirmer la suppression</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                Êtes-vous sûr de vouloir supprimer cette image ? Cette action est irréversible.
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                <a href="{{ path('trick_delete_image', { 'trick_slug': trick.slug, 'image_id': illustration.id }) }}" class="btn btn-danger">Supprimer</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             {% endif %}
         {% endfor %}
 
@@ -55,7 +78,7 @@
     </div>
 </div>
 
-<!-- Delete Confirmation Modal (Only Rendered if an Image Exists) -->
+<!-- Delete Confirmation Modal for the First Image -->
 {% if trick.illustrations|length > 0 %}
     <div class="modal fade" id="deleteImageModal" tabindex="-1" aria-labelledby="deleteImageModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -132,11 +155,24 @@
     width: 300px;
     height: 200px;
     object-fit: cover;
+    position: relative;
 }
 
 .media-item iframe {
     width: 100%;
     height: 100%;
+}
+
+/* Small Delete Button on Images */
+.delete-image-btn {
+    width: 30px;
+    height: 30px;
+    font-size: 0.8rem;
+    padding: 2px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 </style>
 

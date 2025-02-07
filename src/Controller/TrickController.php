@@ -13,6 +13,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 
 class TrickController extends AbstractController
 {
@@ -20,49 +21,54 @@ class TrickController extends AbstractController
     public function create(Request $request, EntityManagerInterface $entityManager): Response
     {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
-    
+
         $trick = new Trick();
         $trick->setCreator($this->getUser());
         $form = $this->createForm(TrickType::class, $trick);
         $form->handleRequest($request);
-    
+
         if ($form->isSubmitted() && $form->isValid()) {
-    
+
+            // ✅ Check if trick name already exists
+            $existingTrick = $entityManager->getRepository(Trick::class)->findOneBy(['name' => $trick->getName()]);
+            if ($existingTrick) {
+                $this->addFlash('danger', 'Ce nom de figure existe déjà. Veuillez en choisir un autre.');
+                return $this->render('trick/create.html.twig', [
+                    'form' => $form->createView(),
+                ]);
+            }
+
             // ✅ Generate Slug Before Saving
             $slug = strtolower(trim(preg_replace('/[^a-z0-9]+/', '-', $trick->getName()), '-'));
             $trick->setSlug($slug);
-    
+
             // ✅ Persist Images
             $uploadedImages = $form->get('images')->getData();
             foreach ($uploadedImages as $uploadedImage) {
                 if ($uploadedImage instanceof UploadedFile) {
                     $imageData = file_get_contents($uploadedImage->getPathname());
-    
+
                     $illustration = new Illustration();
                     $illustration->setImageData($imageData);
                     $illustration->setTrick($trick);
-    
+
                     $trick->addIllustration($illustration);
                     $entityManager->persist($illustration);
                 }
             }
-    
+
+            // ✅ Persist Videos (Ensure YouTube/Dailymotion Embeds)
             $videoEmbeds = $form->get('videos')->getData();
             foreach ($videoEmbeds as $embedCode) {
                 if (!empty($embedCode)) {
                     $video = new Video();
 
-                    // ✅ Fix YouTube URL Handling
+                    // ✅ Convert YouTube/Dailymotion links to embed format
                     if (preg_match('/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([\w-]+)/', $embedCode, $matches)) {
-                        // Convert to embed URL
                         $video->setEmbedCode('https://www.youtube.com/embed/' . $matches[1]);
-                    } 
-                    // ✅ Dailymotion
-                    elseif (preg_match('/dailymotion\.com\/video\/([\w-]+)/', $embedCode, $matches)) {
+                    } elseif (preg_match('/dailymotion\.com\/video\/([\w-]+)/', $embedCode, $matches)) {
                         $video->setEmbedCode('https://www.dailymotion.com/embed/video/' . $matches[1]);
-                    } 
-                    // ✅ Already an Embed URL (No Changes)
-                    else {
+                    } else {
                         $video->setEmbedCode($embedCode);
                     }
 
@@ -72,13 +78,17 @@ class TrickController extends AbstractController
                 }
             }
 
-            $entityManager->persist($trick);
-            $entityManager->flush();
-    
-            $this->addFlash('success', 'La figure a été ajoutée avec succès !');
-            return $this->redirectToRoute('home');
+            try {
+                $entityManager->persist($trick);
+                $entityManager->flush();
+
+                $this->addFlash('success', 'La figure a été ajoutée avec succès !');
+                return $this->redirectToRoute('home');
+            } catch (UniqueConstraintViolationException $e) {
+                $this->addFlash('danger', 'Ce nom de figure existe déjà. Veuillez en choisir un autre.');
+            }
         }
-    
+
         return $this->render('trick/create.html.twig', [
             'form' => $form->createView(),
         ]);

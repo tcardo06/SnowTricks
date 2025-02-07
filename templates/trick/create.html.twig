@@ -10,6 +10,14 @@
         <h1 class="text-center mb-3">Créer une figure</h1>
         <p class="text-center text-muted mb-4">Ajoutez une nouvelle figure de snowboard.</p>
 
+        {% if app.flashes('danger') %}
+            <div class="alert alert-danger">
+                {% for message in app.flashes('danger') %}
+                    {{ message }}
+                {% endfor %}
+            </div>
+        {% endif %}
+
         {{ form_start(form, { 'attr': { 'class': 'needs-validation', 'enctype': 'multipart/form-data' } }) }}
             <div class="mb-3">
                 {{ form_row(form.name, { 'attr': { 'class': 'form-control' } }) }}

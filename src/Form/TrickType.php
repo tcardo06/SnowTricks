@@ -11,6 +11,8 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Validator\Constraints\NotBlank;
 
 class TrickType extends AbstractType
 {
@@ -19,7 +21,10 @@ class TrickType extends AbstractType
         $builder
             ->add('name', TextType::class, [
                 'label' => 'Nom de la figure',
-                'attr' => ['placeholder' => 'Nom de la figure']
+                'attr' => ['placeholder' => 'Nom de la figure'],
+                'constraints' => [
+                    new NotBlank(['message' => 'Le nom de la figure est obligatoire.']),
+                ]
             ])
             ->add('description', TextareaType::class, [
                 'label' => 'Description',
@@ -48,7 +53,7 @@ class TrickType extends AbstractType
                 'allow_add' => true,
                 'allow_delete' => true,
                 'prototype' => true,
-                'mapped' => false, // ✅ Prevent Symfony from mapping directly to Trick
+                'mapped' => false, // Prevent Symfony from mapping directly to Trick
                 'by_reference' => false, // Important for CollectionType
             ]);
     }
@@ -60,6 +65,12 @@ class TrickType extends AbstractType
             'csrf_protection' => false,
             'csrf_field_name' => '_token',
             'csrf_token_id'   => 'trick',
+            'constraints' => [
+                new UniqueEntity([
+                    'fields' => ['name'],
+                    'message' => 'Ce nom de figure existe déjà. Veuillez en choisir un autre.',
+                ]),
+            ],
         ]);
-    }     
+    }
 }

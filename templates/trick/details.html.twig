@@ -10,8 +10,8 @@
         
         <h1 class="text-white text-center bg-dark bg-opacity-50 px-4 py-2 rounded">{{ trick.name }}</h1>
 
-        <!-- Buttons for Edit/Delete on First Image -->
-        {% if trick.illustrations|length > 0 %}
+        <!-- Buttons for Edit/Delete on First Image (Only for Logged-in Users) -->
+        {% if is_granted('IS_AUTHENTICATED_FULLY') and trick.illustrations|length > 0 %}
             <div class="position-absolute top-0 end-0 p-2">
                 <a href="#" class="btn btn-sm btn-warning me-1">✏️ Modifier</a>
                 <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteImageModal">
@@ -34,28 +34,33 @@
             {% if loop.index > 1 %} {# Skip first image since it's in the header #}
                 <div class="position-relative mx-2">
                     <img src="data:image/jpeg;base64,{{ illustration.getBase64Image() }}" class="media-item img-thumbnail" />
-                    <!-- Small delete button -->
-                    <button type="button" class="btn btn-danger btn-sm delete-image-btn position-absolute top-0 end-0" data-bs-toggle="modal" data-bs-target="#deleteImageModal{{ illustration.id }}">❌</button>
+                    
+                    <!-- Small delete button (Only for Logged-in Users) -->
+                    {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+                        <button type="button" class="btn btn-danger btn-sm delete-image-btn position-absolute top-0 end-0" data-bs-toggle="modal" data-bs-target="#deleteImageModal{{ illustration.id }}">❌</button>
+                    {% endif %}
                 </div>
 
                 <!-- Delete Confirmation Modal for each image -->
-                <div class="modal fade" id="deleteImageModal{{ illustration.id }}" tabindex="-1" aria-labelledby="deleteImageModalLabel{{ illustration.id }}" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="deleteImageModalLabel{{ illustration.id }}">Confirmer la suppression</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                Êtes-vous sûr de vouloir supprimer cette image ? Cette action est irréversible.
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                                <a href="{{ path('trick_delete_image', { 'trick_slug': trick.slug, 'image_id': illustration.id }) }}" class="btn btn-danger">Supprimer</a>
+                {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+                    <div class="modal fade" id="deleteImageModal{{ illustration.id }}" tabindex="-1" aria-labelledby="deleteImageModalLabel{{ illustration.id }}" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="deleteImageModalLabel{{ illustration.id }}">Confirmer la suppression</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    Êtes-vous sûr de vouloir supprimer cette image ? Cette action est irréversible.
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                    <a href="{{ path('trick_delete_image', { 'trick_slug': trick.slug, 'image_id': illustration.id }) }}" class="btn btn-danger">Supprimer</a>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                {% endif %}
             {% endif %}
         {% endfor %}
 
@@ -78,8 +83,8 @@
     </div>
 </div>
 
-<!-- Delete Confirmation Modal for the First Image -->
-{% if trick.illustrations|length > 0 %}
+<!-- Delete Confirmation Modal for the First Image (Only for Logged-in Users) -->
+{% if is_granted('IS_AUTHENTICATED_FULLY') and trick.illustrations|length > 0 %}
     <div class="modal fade" id="deleteImageModal" tabindex="-1" aria-labelledby="deleteImageModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">

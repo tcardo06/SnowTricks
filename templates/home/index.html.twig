@@ -9,7 +9,15 @@
     {% for trick in tricks %}
         <div class="col">
             <div class="card">
-                <img src="{{ asset('images/placeholder.jpg') }}" class="card-img-top" alt="{{ trick.name }}">
+                <!-- Display first trick image if available, otherwise use placeholder -->
+                <img src="{% if trick.illustrations|length > 0 %}
+                            data:image/jpeg;base64,{{ trick.illustrations|first.getBase64Image() }}
+                         {% else %}
+                            {{ asset('images/placeholder.jpg') }}
+                         {% endif %}" 
+                     class="card-img-top" 
+                     alt="{{ trick.name }}">
+                
                 <div class="card-body">
                     <h5 class="card-title">
                         <a href="{{ path('trick_details', { slug: trick.slug }) }}">{{ trick.name }}</a>
@@ -44,6 +52,5 @@ document.getElementById('load-more').addEventListener('click', function () {
         })
         .catch(error => console.error('Error loading more tricks:', error));
 });
-
 </script>
 {% endblock %}

@@ -51,7 +51,7 @@ class Trick
     private $updatedAt;
 
     /**
-     * @ORM\OneToMany(targetEntity=Illustration::class, mappedBy="trick", orphanRemoval=true, cascade={"persist", "remove"})
+     * @ORM\OneToMany(targetEntity=Illustration::class, mappedBy="trick", cascade={"persist", "remove"}, orphanRemoval=true)
      */
     private $illustrations;
 

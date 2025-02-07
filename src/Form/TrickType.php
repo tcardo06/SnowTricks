@@ -5,6 +5,7 @@ namespace App\Form;
 use App\Entity\Trick;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
+use Symfony\Component\Validator\Constraints\File;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
@@ -30,32 +31,35 @@ class TrickType extends AbstractType
             ])
             ->add('images', FileType::class, [
                 'label' => 'Illustrations',
-                'mapped' => false,
+                'mapped' => false,  // ✅ Don't map it directly to the entity
                 'required' => false,
-                'multiple' => true
-            ])
+                'multiple' => true,
+            ])            
             ->add('videos', CollectionType::class, [
                 'label' => 'Vidéos (balise embed)',
-                'entry_type' => TextareaType::class, 
+                'entry_type' => TextareaType::class,
                 'entry_options' => [
                     'attr' => [
                         'rows' => 3, 
-                        'placeholder' => 'Collez ici le code embed de la vidéo (ex: YouTube, Dailymotion)',
+                        'placeholder' => 'Collez ici le code embed de la vidéo',
                         'class' => 'form-control'
                     ]
                 ],
                 'allow_add' => true,
                 'allow_delete' => true,
                 'prototype' => true,
-                'by_reference' => false,
-                'mapped' => false,  // Prevent automatic mapping to `Trick::$videos`
-            ]);                      
+                'mapped' => false, // ✅ Prevent Symfony from mapping directly to Trick
+                'by_reference' => false, // Important for CollectionType
+            ]);
     }
-
+    
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults([
             'data_class' => Trick::class,
+            'csrf_protection' => false,
+            'csrf_field_name' => '_token',
+            'csrf_token_id'   => 'trick',
         ]);
-    }
+    }     
 }

@@ -5,12 +5,12 @@
 {% block body_class %}no-padding-body{% endblock %}
 
 {% block body %}
-<div class="d-flex justify-content-center align-items-center vh-100">
+<div class="d-flex justify-content-center align-items-center">
     <div class="card shadow p-5" style="width: 100%; max-width: 600px; border-radius: 15px;">
         <h1 class="text-center mb-3">Créer une figure</h1>
         <p class="text-center text-muted mb-4">Ajoutez une nouvelle figure de snowboard.</p>
 
-        {{ form_start(form, { 'attr': { 'class': 'needs-validation' } }) }}
+        {{ form_start(form, { 'attr': { 'class': 'needs-validation', 'enctype': 'multipart/form-data' } }) }}
             <div class="mb-3">
                 {{ form_row(form.name, { 'attr': { 'class': 'form-control' } }) }}
             </div>
@@ -39,7 +39,7 @@
 
             <button type="button" id="add-video" class="btn btn-secondary mt-2">Ajouter une vidéo</button>
             <button class="btn btn-primary w-100 mt-3" type="submit">Créer la figure</button>
-        {{ form_end(form) }}
+        {{ form_end(form, {'render_rest': false}) }}
     </div>
 </div>
 

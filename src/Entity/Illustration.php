@@ -7,7 +7,6 @@ use Doctrine\ORM\Mapping as ORM;
 
 /**
  * @ORM\Entity(repositoryClass=IllustrationRepository::class)
- * @ORM\HasLifecycleCallbacks
  */
 class Illustration
 {
@@ -19,18 +18,13 @@ class Illustration
     private $id;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="blob")  // ✅ Store image as binary data
      */
-    private $filePath;
+    private $imageData;
 
     /**
-     * @ORM\Column(type="datetime_immutable")
-     */
-    private $createdAt;
-
-    /**
-     * @ORM\ManyToOne(targetEntity=Trick::class, inversedBy="illustrations", cascade={"remove"})
-     * @ORM\JoinColumn(nullable=false, onDelete="CASCADE")
+     * @ORM\ManyToOne(targetEntity=Trick::class, inversedBy="illustrations")
+     * @ORM\JoinColumn(nullable=false)
      */
     private $trick;
 
@@ -39,29 +33,15 @@ class Illustration
         return $this->id;
     }
 
-    public function getFilePath(): ?string
+    public function getImageData(): ?string
     {
-        return $this->filePath;
-    }
+        return $this->imageData ? stream_get_contents($this->imageData) : null;
+    }    
 
-    public function setFilePath(string $filePath): self
+    public function setImageData($imageData): self
     {
-        $this->filePath = $filePath;
-
+        $this->imageData = $imageData;
         return $this;
-    }
-
-    public function getCreatedAt(): ?\DateTimeImmutable
-    {
-        return $this->createdAt;
-    }
-
-    /**
-     * @ORM\PrePersist
-     */
-    public function setCreatedAtValue(): void
-    {
-        $this->createdAt = new \DateTimeImmutable();
     }
 
     public function getTrick(): ?Trick
@@ -72,7 +52,7 @@ class Illustration
     public function setTrick(?Trick $trick): self
     {
         $this->trick = $trick;
-
         return $this;
     }
 }
+

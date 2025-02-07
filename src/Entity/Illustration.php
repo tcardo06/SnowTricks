@@ -6,7 +6,7 @@ use App\Repository\IllustrationRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass=IllustrationRepository::class)
+ * @ORM\Entity(repositoryClass=App\Repository\IllustrationRepository::class)
  */
 class Illustration
 {

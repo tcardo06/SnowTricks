@@ -110,5 +110,28 @@ class TrickController extends AbstractController
         return $this->render('trick/details.html.twig', [
             'trick' => $trick,
         ]);
-    }          
+    }
+    
+    #[Route('/trick/{trick_slug}/delete-image/{image_id}', name: 'trick_delete_image', methods: ['GET'])]
+    public function deleteImage(string $trick_slug, int $image_id, EntityManagerInterface $entityManager): Response
+    {
+        $trick = $entityManager->getRepository(Trick::class)->findOneBy(['slug' => $trick_slug]);
+        if (!$trick) {
+            throw $this->createNotFoundException('Trick not found.');
+        }
+    
+        $image = $entityManager->getRepository(Illustration::class)->find($image_id);
+        if (!$image || $image->getTrick() !== $trick) {
+            throw $this->createNotFoundException('Image not found or does not belong to this trick.');
+        }
+    
+        // Remove Image from Database
+        $entityManager->remove($image);
+        $entityManager->flush();
+    
+        // Flash Message
+        $this->addFlash('success', 'Image supprimée avec succès.');
+    
+        return $this->redirectToRoute('trick_details', ['slug' => $trick_slug]);
+    }    
 }

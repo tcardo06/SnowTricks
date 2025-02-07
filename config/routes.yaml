@@ -2,8 +2,6 @@ home:
     path: /
     controller: App\Controller\HomeController::index
 
-
-
 registration:
     path: /inscription
     controller: App\Controller\RegistrationController::register
@@ -49,5 +47,10 @@ trick_details:
     requirements:
         slug: '[a-z0-9-]+'
 
-
-
+trick_delete_image:
+    path: /trick/{trick_slug}/delete-image/{image_id}
+    controller: App\Controller\TrickController::deleteImage
+    methods: [GET]
+    requirements:
+        trick_slug: '[a-z0-9-]+'
+        image_id: '\d+'

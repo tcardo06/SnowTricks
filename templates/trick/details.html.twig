@@ -5,14 +5,20 @@
 {% block body %}
 <div class="container mt-4">
 
-    <!-- Trick Header with Background Image -->
-    <div class="trick-header position-relative">
+    <!-- Banner Image (First Image or Placeholder) -->
+    <div class="trick-banner position-relative" style="background: url({% if trick.illustrations|length > 0 %}data:image/jpeg;base64,{{ trick.illustrations[0].getBase64Image() }}{% else %}{{ asset('images/placeholder.jpg') }}{% endif %}) no-repeat center center; background-size: cover; height: 300px; display: flex; align-items: center; justify-content: center;">
+        
+        <h1 class="text-white text-center bg-dark bg-opacity-50 px-4 py-2 rounded">{{ trick.name }}</h1>
+
+        <!-- Buttons for Edit/Delete on First Image -->
         {% if trick.illustrations|length > 0 %}
-            <div class="header-bg" style="background-image: url('data:image/jpeg;base64,{{ trick.illustrations[0].getBase64Image() }}');"></div>
-        {% else %}
-            <div class="header-bg" style="background-image: url('{{ asset('images/placeholder.jpg') }}');"></div>
+            <div class="position-absolute top-0 end-0 p-2">
+                <a href="#" class="btn btn-sm btn-warning me-1">✏️ Modifier</a>
+                <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteImageModal">
+                    ❌ Supprimer
+                </button>
+            </div>
         {% endif %}
-        <h1 class="trick-title text-center">{{ trick.name }}</h1>
     </div>
 
     <!-- Trick Details -->
@@ -49,6 +55,27 @@
     </div>
 </div>
 
+<!-- Delete Confirmation Modal (Only Rendered if an Image Exists) -->
+{% if trick.illustrations|length > 0 %}
+    <div class="modal fade" id="deleteImageModal" tabindex="-1" aria-labelledby="deleteImageModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteImageModalLabel">Confirmer la suppression</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Êtes-vous sûr de vouloir supprimer cette image ? Cette action est irréversible.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <a href="{{ path('trick_delete_image', { 'trick_slug': trick.slug, 'image_id': trick.illustrations|first.id }) }}" class="btn btn-danger">Supprimer</a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
 <style>
 /* Trick Header */
 .trick-header {
@@ -69,6 +96,19 @@
     background-position: center;
     filter: brightness(0.5);
     z-index: 1;
+}
+
+.trick-banner {
+    position: relative;
+    background-size: cover;
+    height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.trick-banner h1 {
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.7);
 }
 
 .trick-title {

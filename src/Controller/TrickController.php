@@ -93,6 +93,32 @@ class TrickController extends AbstractController
             'form' => $form->createView(),
         ]);
     }
+
+    #[Route('/trick/{slug}/delete', name: 'trick_delete', methods: ['GET'])]
+    public function delete(string $slug, EntityManagerInterface $entityManager): Response
+    {
+        $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
+
+        // Fetch trick
+        $trick = $entityManager->getRepository(Trick::class)->findOneBy(['slug' => $slug]);
+
+        if (!$trick) {
+            throw $this->createNotFoundException('Trick not found.');
+        }
+
+        // Ensure only the creator can delete the trick
+        if ($trick->getCreator() !== $this->getUser()) {
+            $this->addFlash('danger', 'Vous ne pouvez pas supprimer cette figure.');
+            return $this->redirectToRoute('home');
+        }
+
+        // Remove trick and flush
+        $entityManager->remove($trick);
+        $entityManager->flush();
+
+        $this->addFlash('success', 'La figure a été supprimée avec succès.');
+        return $this->redirectToRoute('home');
+    }
     
     /**
      * Converts YouTube links into embed URLs.
@@ -104,7 +130,7 @@ class TrickController extends AbstractController
             return 'https://www.youtube.com/embed/' . $matches[1];
         }
         return $url; // Return original URL if no match
-    }               
+    }             
     
     #[Route('/trick/{slug}', name: 'trick_details', requirements: ['slug' => '[a-z0-9-]+'])]
     public function details(string $slug, EntityManagerInterface $entityManager): Response

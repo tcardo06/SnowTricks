@@ -39,6 +39,13 @@ trick_create:
     path: /trick/create
     controller: App\Controller\TrickController::create
     methods: [GET, POST]
+
+trick_delete:
+    path: /trick/{slug}/delete
+    controller: App\Controller\TrickController::delete
+    methods: [GET]
+    requirements:
+        slug: '[a-z0-9-]+'
     
 trick_details:
     path: /trick/{slug}

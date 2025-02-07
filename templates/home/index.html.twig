@@ -8,7 +8,7 @@
 <div id="tricks-container" class="row row-cols-1 row-cols-md-3 g-4">
     {% for trick in tricks %}
         <div class="col">
-            <div class="card">
+            <div class="card position-relative">
                 <!-- Display first trick image if available, otherwise use placeholder -->
                 <img src="{% if trick.illustrations|length > 0 %}
                             data:image/jpeg;base64,{{ trick.illustrations|first.getBase64Image() }}
@@ -17,7 +17,17 @@
                          {% endif %}" 
                      class="card-img-top" 
                      alt="{{ trick.name }}">
-                
+
+                <!-- Edit & Delete Buttons (Only for Logged-in Users) -->
+                {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+                    <div class="position-absolute top-0 end-0 p-2 d-flex">
+                        <a href="#" class="btn btn-sm btn-warning me-1">✏️</a>
+                        <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteTrickModal{{ trick.id }}">
+                            ❌
+                        </button>
+                    </div>
+                {% endif %}
+
                 <div class="card-body">
                     <h5 class="card-title">
                         <a href="{{ path('trick_details', { slug: trick.slug }) }}">{{ trick.name }}</a>
@@ -26,6 +36,27 @@
                 </div>
             </div>
         </div>
+
+        <!-- Delete Confirmation Modal -->
+        {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+            <div class="modal fade" id="deleteTrickModal{{ trick.id }}" tabindex="-1" aria-labelledby="deleteTrickModalLabel{{ trick.id }}" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="deleteTrickModalLabel{{ trick.id }}">Confirmer la suppression</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            Êtes-vous sûr de vouloir supprimer la figure "<strong>{{ trick.name }}</strong>" ? Cette action est irréversible.
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                            <a href="{{ path('trick_delete', { slug: trick.slug }) }}" class="btn btn-danger">Supprimer</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
     {% endfor %}
 </div>
 
@@ -53,4 +84,24 @@ document.getElementById('load-more').addEventListener('click', function () {
         .catch(error => console.error('Error loading more tricks:', error));
 });
 </script>
+
+<style>
+/* Small Edit & Delete Buttons on Images */
+.card .position-absolute {
+    top: 5px;
+    right: 5px;
+}
+
+.card .btn-sm {
+    width: 30px;
+    height: 30px;
+    font-size: 0.8rem;
+    padding: 2px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+</style>
+
 {% endblock %}

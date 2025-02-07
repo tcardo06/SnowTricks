@@ -22,6 +22,7 @@ class TrickController extends AbstractController
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
     
         $trick = new Trick();
+        $trick->setCreator($this->getUser());
         $form = $this->createForm(TrickType::class, $trick);
         $form->handleRequest($request);
     
@@ -31,7 +32,7 @@ class TrickController extends AbstractController
             $slug = strtolower(trim(preg_replace('/[^a-z0-9]+/', '-', $trick->getName()), '-'));
             $trick->setSlug($slug);
     
-            // ✅ Convert images to binary and persist
+            // ✅ Persist Images
             $uploadedImages = $form->get('images')->getData();
             foreach ($uploadedImages as $uploadedImage) {
                 if ($uploadedImage instanceof UploadedFile) {
@@ -46,6 +47,18 @@ class TrickController extends AbstractController
                 }
             }
     
+            // ✅ Persist Videos (⚠️ This was missing!)
+            $videoEmbeds = $form->get('videos')->getData();
+            foreach ($videoEmbeds as $embedCode) {
+                if (!empty($embedCode)) { // Ensure it's not empty
+                    $video = new Video();
+                    $video->setEmbedCode($embedCode);
+                    $video->setTrick($trick);
+                    $trick->addVideo($video);
+                    $entityManager->persist($video); // Persist new Video entity
+                }
+            }
+    
             $entityManager->persist($trick);
             $entityManager->flush();
     
@@ -56,7 +69,7 @@ class TrickController extends AbstractController
         return $this->render('trick/create.html.twig', [
             'form' => $form->createView(),
         ]);
-    }         
+    }            
     
     #[Route('/trick/{slug}', name: 'trick_details', requirements: ['slug' => '[a-z0-9-]+'])]
     public function details(string $slug, EntityManagerInterface $entityManager): Response

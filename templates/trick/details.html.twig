@@ -3,10 +3,57 @@
 {% block title %}{{ trick.name }} - Details{% endblock %}
 
 {% block body %}
-<h1>{{ trick.name }}</h1>
-<p>{{ trick.description }}</p>
-<p><strong>Group:</strong> {{ trick.groupName }}</p>
-<p><strong>Created At:</strong> {{ trick.createdAt|date('Y-m-d H:i') }}</p>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <h1 class="text-center">{{ trick.name }}</h1>
 
-<a href="{{ path('home') }}">Back to Homepage</a>
+        <!-- Edit/Delete Buttons (Visible only if the user is the trick creator) -->
+{#         {% if app.user and app.user == trick.creator %}
+            <div>
+                <a href="{{ path('trick_edit', { 'slug': trick.slug }) }}" class="btn btn-sm btn-warning">
+                    ✏️ Modifier
+                </a>
+                <a href="{{ path('trick_delete', { 'slug': trick.slug }) }}" class="btn btn-sm btn-danger">
+                    🗑️ Supprimer
+                </a>
+            </div>
+        {% endif %} #}
+    </div>
+
+    <!-- Images Gallery -->
+    <div class="d-flex flex-wrap justify-content-center mt-3">
+        {% for illustration in trick.illustrations %}
+            <img src="data:image/jpeg;base64,{{ illustration.getBase64Image() }}" class="img-thumbnail mx-2" width="150" height="100" />
+        {% else %}
+            <img src="{{ asset('images/placeholder.jpg') }}" class="img-thumbnail mx-2" width="150" height="100" />
+        {% endfor %}
+    </div>
+
+    <!-- Videos Gallery -->
+    <div class="d-flex flex-wrap justify-content-center mt-3">
+        {% for video in trick.videos %}
+            <div class="embed-responsive embed-responsive-16by9 mx-2" style="width: 200px; height: 150px;">
+                {{ video.embedCode|raw }}
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Trick Details -->
+    <div class="card mt-4 p-4 shadow">
+        <p><strong>Description:</strong> {{ trick.description }}</p>
+        <p><strong>Groupe:</strong> {{ trick.groupName }}</p>
+        <p><strong>Créé le:</strong> {{ trick.createdAt|date('d/m/Y H:i') }}</p>
+    </div>
+
+    <!-- Future Comment Section -->
+    <div class="mt-4">
+        <h4>Commentaires</h4>
+        <p class="text-muted">Les commentaires seront ajoutés plus tard.</p>
+    </div>
+
+    <!-- Back Button -->
+    <div class="mt-4">
+        <a href="{{ path('home') }}" class="btn btn-primary">⬅ Retour à l'accueil</a>
+    </div>
+</div>
 {% endblock %}

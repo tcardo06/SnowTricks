@@ -51,6 +51,23 @@ class Trick
     private $updatedAt;
 
     /**
+     * @ORM\ManyToOne(targetEntity=User::class, inversedBy="tricks")
+     * @ORM\JoinColumn(nullable=false)
+     */
+    private $creator;
+
+    public function getCreator(): ?User
+    {
+        return $this->creator;
+    }
+
+    public function setCreator(User $creator): self
+    {
+        $this->creator = $creator;
+        return $this;
+    }
+
+    /**
      * @ORM\OneToMany(targetEntity=Illustration::class, mappedBy="trick", cascade={"persist", "remove"}, orphanRemoval=true)
      */
     private $illustrations;

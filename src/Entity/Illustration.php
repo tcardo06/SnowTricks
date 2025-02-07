@@ -28,6 +28,11 @@ class Illustration
      */
     private $trick;
 
+    public function getBase64Image(): string
+    {
+        return base64_encode(stream_get_contents($this->imageData));
+    }
+
     public function getId(): ?int
     {
         return $this->id;

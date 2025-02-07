@@ -143,5 +143,31 @@ class TrickController extends AbstractController
         $this->addFlash('success', 'Image supprimée avec succès.');
     
         return $this->redirectToRoute('trick_details', ['slug' => $trick_slug]);
-    }    
+    }
+
+    #[Route('/trick/{trick_slug}/delete-video/{video_id}', name: 'trick_delete_video', methods: ['GET'])]
+    public function deleteVideo(string $trick_slug, int $video_id, EntityManagerInterface $entityManager): Response
+    {
+        // Find the Trick by slug
+        $trick = $entityManager->getRepository(Trick::class)->findOneBy(['slug' => $trick_slug]);
+        if (!$trick) {
+            throw $this->createNotFoundException('Trick not found.');
+        }
+    
+        // Find the Video by ID
+        $video = $entityManager->getRepository(Video::class)->find($video_id);
+        if (!$video || $video->getTrick() !== $trick) {
+            throw $this->createNotFoundException('Video not found or does not belong to this trick.');
+        }
+    
+        // Ensure Video is Removed Properly
+        $trick->removeVideo($video);
+        $entityManager->remove($video);
+        $entityManager->flush();
+    
+        // Flash Message
+        $this->addFlash('success', 'Vidéo supprimée avec succès.');
+    
+        return $this->redirectToRoute('trick_details', ['slug' => $trick_slug]);
+    }      
 }

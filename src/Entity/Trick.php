@@ -73,7 +73,7 @@ class Trick
     private $illustrations;
 
     /**
-     * @ORM\OneToMany(targetEntity=Video::class, mappedBy="trick", orphanRemoval=true, cascade={"persist", "remove"})
+     * @ORM\OneToMany(targetEntity=Video::class, mappedBy="trick", orphanRemoval=true, cascade={"persist"})
      */
     private $videos;
 
@@ -216,9 +216,8 @@ class Trick
                 $video->setTrick(null);
             }
         }
-
         return $this;
-    }
+    }    
 
     public function getMessages(): Collection
     {

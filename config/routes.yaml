@@ -54,3 +54,9 @@ trick_delete_image:
     requirements:
         trick_slug: '[a-z0-9-]+'
         image_id: '\d+'
+
+trick_delete_video:
+    path: /trick/{trick_slug}/delete-video/{video_id}
+    controller: App\Controller\TrickController::deleteVideo
+    methods: [GET]
+

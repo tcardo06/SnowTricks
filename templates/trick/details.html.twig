@@ -37,7 +37,7 @@
                     
                     <!-- Small delete button (Only for Logged-in Users) -->
                     {% if is_granted('IS_AUTHENTICATED_FULLY') %}
-                        <button type="button" class="btn btn-danger btn-sm delete-image-btn position-absolute top-0 end-0" data-bs-toggle="modal" data-bs-target="#deleteImageModal{{ illustration.id }}">❌</button>
+                        <button type="button" class="btn btn-danger btn-sm delete-media-btn position-absolute top-0 end-0" data-bs-toggle="modal" data-bs-target="#deleteImageModal{{ illustration.id }}">❌</button>
                     {% endif %}
                 </div>
 
@@ -65,9 +65,37 @@
         {% endfor %}
 
         {% for video in trick.videos %}
-            <div class="media-item embed-responsive embed-responsive-16by9 mx-2">
-                <iframe src="{{ video.embedCode }}" frameborder="0" allowfullscreen></iframe>
+            <div class="position-relative mx-2">
+                <div class="media-item embed-responsive embed-responsive-16by9">
+                    <iframe src="{{ video.embedCode }}" frameborder="0" allowfullscreen></iframe>
+                </div>
+
+                <!-- Small delete button (Only for Logged-in Users) -->
+                {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+                    <button type="button" class="btn btn-danger btn-sm delete-media-btn position-absolute top-0 end-0" data-bs-toggle="modal" data-bs-target="#deleteVideoModal{{ video.id }}">❌</button>
+                {% endif %}
             </div>
+
+            <!-- Delete Confirmation Modal for each video -->
+            {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+                <div class="modal fade" id="deleteVideoModal{{ video.id }}" tabindex="-1" aria-labelledby="deleteVideoModalLabel{{ video.id }}" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="deleteVideoModalLabel{{ video.id }}">Confirmer la suppression</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                Êtes-vous sûr de vouloir supprimer cette vidéo ? Cette action est irréversible.
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                <a href="{{ path('trick_delete_video', { 'trick_slug': trick.slug, 'video_id': video.id }) }}" class="btn btn-danger">Supprimer</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
         {% endfor %}
     </div>
 
@@ -83,49 +111,8 @@
     </div>
 </div>
 
-<!-- Delete Confirmation Modal for the First Image (Only for Logged-in Users) -->
-{% if is_granted('IS_AUTHENTICATED_FULLY') and trick.illustrations|length > 0 %}
-    <div class="modal fade" id="deleteImageModal" tabindex="-1" aria-labelledby="deleteImageModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="deleteImageModalLabel">Confirmer la suppression</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    Êtes-vous sûr de vouloir supprimer cette image ? Cette action est irréversible.
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    <a href="{{ path('trick_delete_image', { 'trick_slug': trick.slug, 'image_id': trick.illustrations|first.id }) }}" class="btn btn-danger">Supprimer</a>
-                </div>
-            </div>
-        </div>
-    </div>
-{% endif %}
-
 <style>
 /* Trick Header */
-.trick-header {
-    position: relative;
-    width: 100%;
-    height: 250px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-}
-
-.header-bg {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background-size: cover;
-    background-position: center;
-    filter: brightness(0.5);
-    z-index: 1;
-}
-
 .trick-banner {
     position: relative;
     background-size: cover;
@@ -137,15 +124,6 @@
 
 .trick-banner h1 {
     text-shadow: 2px 2px 8px rgba(0,0,0,0.7);
-}
-
-.trick-title {
-    position: relative;
-    color: white;
-    font-size: 2rem;
-    font-weight: bold;
-    z-index: 2;
-    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
 }
 
 /* Media Gallery */
@@ -168,8 +146,8 @@
     height: 100%;
 }
 
-/* Small Delete Button on Images */
-.delete-image-btn {
+/* Small Delete Button on Images & Videos */
+.delete-media-btn {
     width: 30px;
     height: 30px;
     font-size: 0.8rem;

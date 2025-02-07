@@ -47,18 +47,31 @@ class TrickController extends AbstractController
                 }
             }
     
-            // ✅ Persist Videos (⚠️ This was missing!)
             $videoEmbeds = $form->get('videos')->getData();
             foreach ($videoEmbeds as $embedCode) {
-                if (!empty($embedCode)) { // Ensure it's not empty
+                if (!empty($embedCode)) {
                     $video = new Video();
-                    $video->setEmbedCode($embedCode);
+
+                    // ✅ Fix YouTube URL Handling
+                    if (preg_match('/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([\w-]+)/', $embedCode, $matches)) {
+                        // Convert to embed URL
+                        $video->setEmbedCode('https://www.youtube.com/embed/' . $matches[1]);
+                    } 
+                    // ✅ Dailymotion
+                    elseif (preg_match('/dailymotion\.com\/video\/([\w-]+)/', $embedCode, $matches)) {
+                        $video->setEmbedCode('https://www.dailymotion.com/embed/video/' . $matches[1]);
+                    } 
+                    // ✅ Already an Embed URL (No Changes)
+                    else {
+                        $video->setEmbedCode($embedCode);
+                    }
+
                     $video->setTrick($trick);
                     $trick->addVideo($video);
-                    $entityManager->persist($video); // Persist new Video entity
+                    $entityManager->persist($video);
                 }
             }
-    
+
             $entityManager->persist($trick);
             $entityManager->flush();
     
@@ -69,7 +82,19 @@ class TrickController extends AbstractController
         return $this->render('trick/create.html.twig', [
             'form' => $form->createView(),
         ]);
-    }            
+    }
+    
+    /**
+     * Converts YouTube links into embed URLs.
+     */
+    private function convertToEmbed(string $url): string
+    {
+        if (preg_match('/youtu\.be\/([a-zA-Z0-9_-]+)/', $url, $matches) || 
+            preg_match('/youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/', $url, $matches)) {
+            return 'https://www.youtube.com/embed/' . $matches[1];
+        }
+        return $url; // Return original URL if no match
+    }               
     
     #[Route('/trick/{slug}', name: 'trick_details', requirements: ['slug' => '[a-z0-9-]+'])]
     public function details(string $slug, EntityManagerInterface $entityManager): Response

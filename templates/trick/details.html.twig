@@ -4,38 +4,15 @@
 
 {% block body %}
 <div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center">
-        <h1 class="text-center">{{ trick.name }}</h1>
 
-        <!-- Edit/Delete Buttons (Visible only if the user is the trick creator) -->
-{#         {% if app.user and app.user == trick.creator %}
-            <div>
-                <a href="{{ path('trick_edit', { 'slug': trick.slug }) }}" class="btn btn-sm btn-warning">
-                    ✏️ Modifier
-                </a>
-                <a href="{{ path('trick_delete', { 'slug': trick.slug }) }}" class="btn btn-sm btn-danger">
-                    🗑️ Supprimer
-                </a>
-            </div>
-        {% endif %} #}
-    </div>
-
-    <!-- Images Gallery -->
-    <div class="d-flex flex-wrap justify-content-center mt-3">
-        {% for illustration in trick.illustrations %}
-            <img src="data:image/jpeg;base64,{{ illustration.getBase64Image() }}" class="img-thumbnail mx-2" width="150" height="100" />
+    <!-- Trick Header with Background Image -->
+    <div class="trick-header position-relative">
+        {% if trick.illustrations|length > 0 %}
+            <div class="header-bg" style="background-image: url('data:image/jpeg;base64,{{ trick.illustrations[0].getBase64Image() }}');"></div>
         {% else %}
-            <img src="{{ asset('images/placeholder.jpg') }}" class="img-thumbnail mx-2" width="150" height="100" />
-        {% endfor %}
-    </div>
-
-    <!-- Videos Gallery -->
-    <div class="d-flex flex-wrap justify-content-center mt-3">
-        {% for video in trick.videos %}
-            <div class="embed-responsive embed-responsive-16by9 mx-2" style="width: 200px; height: 150px;">
-                {{ video.embedCode|raw }}
-            </div>
-        {% endfor %}
+            <div class="header-bg" style="background-image: url('{{ asset('images/placeholder.jpg') }}');"></div>
+        {% endif %}
+        <h1 class="trick-title text-center">{{ trick.name }}</h1>
     </div>
 
     <!-- Trick Details -->
@@ -43,6 +20,21 @@
         <p><strong>Description:</strong> {{ trick.description }}</p>
         <p><strong>Groupe:</strong> {{ trick.groupName }}</p>
         <p><strong>Créé le:</strong> {{ trick.createdAt|date('d/m/Y H:i') }}</p>
+    </div>
+
+    <!-- Media Gallery -->
+    <div class="media-gallery d-flex flex-wrap justify-content-center mt-3">
+        {% for illustration in trick.illustrations %}
+            {% if loop.index > 1 %} {# Skip first image since it's in the header #}
+                <img src="data:image/jpeg;base64,{{ illustration.getBase64Image() }}" class="media-item img-thumbnail mx-2" />
+            {% endif %}
+        {% endfor %}
+
+        {% for video in trick.videos %}
+            <div class="media-item embed-responsive embed-responsive-16by9 mx-2">
+                <iframe src="{{ video.embedCode }}" frameborder="0" allowfullscreen></iframe>
+            </div>
+        {% endfor %}
     </div>
 
     <!-- Future Comment Section -->
@@ -56,4 +48,56 @@
         <a href="{{ path('home') }}" class="btn btn-primary">⬅ Retour à l'accueil</a>
     </div>
 </div>
+
+<style>
+/* Trick Header */
+.trick-header {
+    position: relative;
+    width: 100%;
+    height: 250px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.header-bg {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    filter: brightness(0.5);
+    z-index: 1;
+}
+
+.trick-title {
+    position: relative;
+    color: white;
+    font-size: 2rem;
+    font-weight: bold;
+    z-index: 2;
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
+}
+
+/* Media Gallery */
+.media-gallery {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+
+.media-item {
+    width: 300px;
+    height: 200px;
+    object-fit: cover;
+}
+
+.media-item iframe {
+    width: 100%;
+    height: 100%;
+}
+</style>
+
 {% endblock %}

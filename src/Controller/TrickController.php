@@ -14,6 +14,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 class TrickController extends AbstractController
 {
@@ -171,29 +172,28 @@ class TrickController extends AbstractController
         return $this->redirectToRoute('trick_details', ['slug' => $trick_slug]);
     }
 
-    #[Route('/trick/{trick_slug}/delete-video/{video_id}', name: 'trick_delete_video', methods: ['GET'])]
-    public function deleteVideo(string $trick_slug, int $video_id, EntityManagerInterface $entityManager): Response
+    #[Route('/trick/{trick_slug}/edit-image/{image_id}', name: 'trick_edit_image', methods: ['POST'])]
+    public function editImage(string $trick_slug, int $image_id, Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
-        // Find the Trick by slug
         $trick = $entityManager->getRepository(Trick::class)->findOneBy(['slug' => $trick_slug]);
         if (!$trick) {
-            throw $this->createNotFoundException('Trick not found.');
+            return new JsonResponse(['success' => false, 'message' => 'Trick not found.'], Response::HTTP_NOT_FOUND);
         }
     
-        // Find the Video by ID
-        $video = $entityManager->getRepository(Video::class)->find($video_id);
-        if (!$video || $video->getTrick() !== $trick) {
-            throw $this->createNotFoundException('Video not found or does not belong to this trick.');
+        $image = $entityManager->getRepository(Illustration::class)->find($image_id);
+        if (!$image) {
+            return new JsonResponse(['success' => false, 'message' => 'Image not found.'], Response::HTTP_NOT_FOUND);
         }
     
-        // Ensure Video is Removed Properly
-        $trick->removeVideo($video);
-        $entityManager->remove($video);
-        $entityManager->flush();
+        $uploadedFile = $request->files->get('image');
+        if ($uploadedFile instanceof UploadedFile) {
+            $image->setImageData(file_get_contents($uploadedFile->getPathname()));
+            $entityManager->flush();
+            return new JsonResponse(['success' => true]);
+        }
     
-        // Flash Message
-        $this->addFlash('success', 'Vidéo supprimée avec succès.');
+        return new JsonResponse(['success' => false, 'message' => 'Invalid file upload.'], Response::HTTP_BAD_REQUEST);
+    }
     
-        return $this->redirectToRoute('trick_details', ['slug' => $trick_slug]);
-    }      
+         
 }

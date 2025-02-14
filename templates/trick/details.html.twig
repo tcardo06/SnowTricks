@@ -12,8 +12,12 @@
 
         <!-- Buttons for Edit/Delete on First Image (Only for Logged-in Users) -->
         {% if is_granted('IS_AUTHENTICATED_FULLY') and trick.illustrations|length > 0 %}
-            <div class="position-absolute top-0 end-0 p-2">
-                <a href="#" class="btn btn-sm btn-warning me-1">✏️ Modifier</a>
+            <div class="position-absolute top-0 end-0 p-2 d-flex">
+                <!-- Edit Banner Image -->
+                <label for="editBannerImage" class="btn btn-sm btn-warning me-1">✏️ Modifier</label>
+                <input type="file" id="editBannerImage" class="d-none" data-image-id="{{ trick.illustrations|first.id }}" data-trick-slug="{{ trick.slug }}">
+
+                <!-- Delete Banner Image -->
                 <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteBannerImageModal">
                     ❌ Supprimer
                 </button>
@@ -35,9 +39,16 @@
                 <div class="position-relative mx-2">
                     <img src="data:image/jpeg;base64,{{ illustration.getBase64Image() }}" class="media-item img-thumbnail" />
                     
-                    <!-- Small delete button (Only for Logged-in Users) -->
+                    <!-- Edit & Delete Buttons (Only for Logged-in Users) -->
                     {% if is_granted('IS_AUTHENTICATED_FULLY') %}
-                        <button type="button" class="btn btn-danger btn-sm delete-media-btn position-absolute top-0 end-0" data-bs-toggle="modal" data-bs-target="#deleteImageModal{{ illustration.id }}">❌</button>
+                        <div class="position-absolute top-0 end-0 p-1 d-flex">
+                            <!-- Edit Image -->
+                            <label for="editImage{{ illustration.id }}" class="btn btn-warning btn-sm me-1">✏️</label>
+                            <input type="file" id="editImage{{ illustration.id }}" class="d-none" data-image-id="{{ illustration.id }}" data-trick-slug="{{ trick.slug }}">
+
+                            <!-- Delete Image -->
+                            <button type="button" class="btn btn-danger btn-sm delete-media-btn" data-bs-toggle="modal" data-bs-target="#deleteImageModal{{ illustration.id }}">❌</button>
+                        </div>
                     {% endif %}
                 </div>
 
@@ -61,40 +72,6 @@
                         </div>
                     </div>
                 {% endif %}
-            {% endif %}
-        {% endfor %}
-
-        {% for video in trick.videos %}
-            <div class="position-relative mx-2">
-                <div class="media-item embed-responsive embed-responsive-16by9">
-                    <iframe src="{{ video.embedCode }}" frameborder="0" allowfullscreen></iframe>
-                </div>
-
-                <!-- Small delete button (Only for Logged-in Users) -->
-                {% if is_granted('IS_AUTHENTICATED_FULLY') %}
-                    <button type="button" class="btn btn-danger btn-sm delete-media-btn position-absolute top-0 end-0" data-bs-toggle="modal" data-bs-target="#deleteVideoModal{{ video.id }}">❌</button>
-                {% endif %}
-            </div>
-
-            <!-- Delete Confirmation Modal for each video -->
-            {% if is_granted('IS_AUTHENTICATED_FULLY') %}
-                <div class="modal fade" id="deleteVideoModal{{ video.id }}" tabindex="-1" aria-labelledby="deleteVideoModalLabel{{ video.id }}" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="deleteVideoModalLabel{{ video.id }}">Confirmer la suppression</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                Êtes-vous sûr de vouloir supprimer cette vidéo ? Cette action est irréversible.
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                                <a href="{{ path('trick_delete_video', { 'trick_slug': trick.slug, 'video_id': video.id }) }}" class="btn btn-danger">Supprimer</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             {% endif %}
         {% endfor %}
     </div>
@@ -130,34 +107,37 @@
             </div>
         </div>
     </div>
-{% endif %}
+    {% endif %}
 
-{% if is_granted('IS_AUTHENTICATED_FULLY') and trick.illustrations|length > 0 %}
-    <!-- Delete Confirmation Modal for Banner Image -->
-    <div class="modal fade" id="deleteBannerImageModal" tabindex="-1" aria-labelledby="deleteBannerImageModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="deleteBannerImageModalLabel">Confirmer la suppression</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    Êtes-vous sûr de vouloir supprimer cette image principale ? Cette action est irréversible.
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    <a href="{{ path('trick_delete_image', { 'trick_slug': trick.slug, 'image_id': trick.illustrations|first.id }) }}" class="btn btn-danger">Supprimer</a>
-                </div>
-            </div>
-        </div>
-    </div>
-{% endif %}
+<!-- JavaScript for Handling Image Upload -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('input[type="file"]').forEach(input => {
+        input.addEventListener('change', function () {
+            if (this.files.length > 0) {
+                let imageId = this.getAttribute('data-image-id');
+                let trickSlug = this.getAttribute('data-trick-slug');
+                let formData = new FormData();
+                formData.append('image', this.files[0]);
 
-    <!-- Back Button -->
-    <div class="mt-4">
-        <a href="{{ path('home') }}" class="btn btn-primary">⬅ Retour à l'accueil</a>
-    </div>
-</div>
+                fetch(`/trick/${trickSlug}/edit-image/${imageId}`, {
+                    method: 'POST',
+                    body: formData
+                }).then(response => response.json())
+                  .then(data => {
+                      if (data.success) {
+                          location.reload(); // Reload page to show updated image
+                      } else {
+                          alert('Erreur: ' + data.message);
+                      }
+                  }).catch(error => console.error('Error:', error));
+            }
+        });
+    });
+});
+</script>
+
+
 
 <style>
 /* Trick Header */

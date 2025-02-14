@@ -67,3 +67,12 @@ trick_delete_video:
     controller: App\Controller\TrickController::deleteVideo
     methods: [GET]
 
+trick_edit_image:
+    path: /trick/{trick_slug}/edit-image/{image_id}
+    controller: App\Controller\TrickController::editImage
+    methods: [POST]
+    requirements:
+        trick_slug: '[a-z0-9-]+'
+        image_id: '\d+'
+
+

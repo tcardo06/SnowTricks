@@ -25,6 +25,27 @@
         {% endif %}
     </div>
 
+    {# Delete Confirmation Modal for Banner Image (First Image) #}
+    {% if is_granted('IS_AUTHENTICATED_FULLY') and trick.illustrations|length > 0 %}
+        <div class="modal fade" id="deleteBannerImageModal" tabindex="-1" aria-labelledby="deleteBannerImageModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteBannerImageModalLabel">Confirmer la suppression</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        Êtes-vous sûr de vouloir supprimer l'image de bannière ? Cette action est irréversible.
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        <a href="{{ path('trick_delete_image', { 'trick_slug': trick.slug, 'image_id': trick.illustrations|first.id }) }}" class="btn btn-danger">Supprimer</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
     <!-- Trick Details -->
     <div class="card mt-4 p-4 shadow">
         <p><strong>Description:</strong> {{ trick.description }}</p>
@@ -74,51 +95,113 @@
                 {% endif %}
             {% endif %}
         {% endfor %}
-    </div>
 
-    <!-- Future Comment Section -->
-    <div class="mt-4">
-        <h4>Commentaires</h4>
-        <p class="text-muted">Les commentaires seront ajoutés plus tard.</p>
-    </div>
+        {% for video in trick.videos %}
+            <div class="position-relative mx-2">
+                <div class="media-item embed-responsive embed-responsive-16by9">
+                    <iframe src="{{ video.embedCode }}" frameborder="0" allowfullscreen></iframe>
+                </div>
 
-    {% if is_granted('IS_AUTHENTICATED_FULLY') and app.user == trick.creator %}
-    <div class="mt-4 text-end">
-        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteTrickModal">
-            Supprimer la figure
-        </button>
-    </div>
+                <!-- Edit & Delete Buttons (Only for Logged-in Users) -->
+                {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+                    <div class="position-absolute top-0 end-0 p-1 d-flex">
+                        <!-- Edit Video -->
+                        <button type="button" class="btn btn-warning btn-sm me-1" data-bs-toggle="modal" data-bs-target="#editVideoModal{{ video.id }}">✏️</button>
 
-    <!-- Delete Confirmation Modal -->
-    <div class="modal fade" id="deleteTrickModal" tabindex="-1" aria-labelledby="deleteTrickModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="deleteTrickModalLabel">Confirmer la suppression</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    Êtes-vous sûr de vouloir supprimer la figure "<strong>{{ trick.name }}</strong>" ? Cette action est irréversible.
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    <a href="{{ path('trick_delete', { slug: trick.slug }) }}" class="btn btn-danger">Supprimer</a>
-                </div>
+                        <!-- Delete Video -->
+                        <button type="button" class="btn btn-danger btn-sm delete-media-btn" data-bs-toggle="modal" data-bs-target="#deleteVideoModal{{ video.id }}">❌</button>
+                    </div>
+                {% endif %}
             </div>
-        </div>
-    </div>
-    {% endif %}
 
-<!-- JavaScript for Handling Image Upload -->
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('input[type="file"]').forEach(input => {
-        input.addEventListener('change', function () {
-            if (this.files.length > 0) {
+            <!-- Edit Video Modal -->
+            {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+                <div class="modal fade" id="editVideoModal{{ video.id }}" tabindex="-1" aria-labelledby="editVideoModalLabel{{ video.id }}" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="editVideoModalLabel{{ video.id }}">Modifier la vidéo</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <label for="newVideoUrl{{ video.id }}">Nouveau lien de la vidéo :</label>
+                                <input type="text" id="newVideoUrl{{ video.id }}" class="form-control" value="{{ video.embedCode }}">
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                <button type="button" class="btn btn-primary save-video-btn" data-video-id="{{ video.id }}" data-trick-slug="{{ trick.slug }}">Enregistrer</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Delete Video Modal -->
+            {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+                <div class="modal fade" id="deleteVideoModal{{ video.id }}" tabindex="-1" aria-labelledby="deleteVideoModalLabel{{ video.id }}" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="deleteVideoModalLabel{{ video.id }}">Confirmer la suppression</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                Êtes-vous sûr de vouloir supprimer cette vidéo ? Cette action est irréversible.
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                <a href="{{ path('trick_delete_video', { 'trick_slug': trick.slug, 'video_id': video.id }) }}" class="btn btn-danger">Supprimer</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    <!-- Delete Trick and Back Buttons -->
+    <div class="mt-4 d-flex justify-content-between">
+        {% if is_granted('IS_AUTHENTICATED_FULLY') and trick.creator == app.user %}
+            <a href="{{ path('trick_delete', {'slug': trick.slug}) }}" class="btn btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette figure ? Cette action est irréversible.');">Supprimer la figure</a>
+        {% endif %}
+        <a href="{{ path('home') }}" class="btn btn-secondary">Retour à l'accueil</a>
+    </div>
+
+    <!-- JavaScript for Handling Video and Image Editing -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Video Editing
+        document.querySelectorAll('.save-video-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                let videoId = this.getAttribute('data-video-id');
+                let trickSlug = this.getAttribute('data-trick-slug');
+                let newVideoUrl = document.getElementById('newVideoUrl' + videoId).value;
+
+                fetch(`/trick/${trickSlug}/edit-video/${videoId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ embedCode: newVideoUrl })
+                }).then(response => response.json())
+                  .then(data => {
+                      if (data.success) {
+                          location.reload();
+                      } else {
+                          alert('Erreur: ' + data.message);
+                      }
+                  }).catch(error => console.error('Error:', error));
+            });
+        });
+
+        // Image Editing (Banner and Individual Images)
+        document.querySelectorAll('input[type="file"][id^="editImage"], input[type="file"][id="editBannerImage"]').forEach(input => {
+            input.addEventListener('change', function () {
                 let imageId = this.getAttribute('data-image-id');
                 let trickSlug = this.getAttribute('data-trick-slug');
+                let file = this.files[0];
+                if (!file) return;
+
                 let formData = new FormData();
-                formData.append('image', this.files[0]);
+                formData.append('image', file);
 
                 fetch(`/trick/${trickSlug}/edit-image/${imageId}`, {
                     method: 'POST',
@@ -126,18 +209,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 }).then(response => response.json())
                   .then(data => {
                       if (data.success) {
-                          location.reload(); // Reload page to show updated image
+                          location.reload();
                       } else {
                           alert('Erreur: ' + data.message);
                       }
                   }).catch(error => console.error('Error:', error));
-            }
+            });
         });
     });
-});
-</script>
-
-
+    </script>
+</div>
 
 <style>
 /* Trick Header */

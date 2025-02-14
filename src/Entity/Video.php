@@ -29,7 +29,7 @@ class Video
     private $createdAt;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Trick::class, inversedBy="videos", cascade={"remove"})
+     * @ORM\ManyToOne(targetEntity=Trick::class, inversedBy="videos")
      * @ORM\JoinColumn(nullable=false, onDelete="CASCADE")
      */
     private $trick;

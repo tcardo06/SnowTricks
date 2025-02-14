@@ -194,6 +194,53 @@ class TrickController extends AbstractController
     
         return new JsonResponse(['success' => false, 'message' => 'Invalid file upload.'], Response::HTTP_BAD_REQUEST);
     }
+
+    #[Route('/trick/{trick_slug}/edit-video/{video_id}', name: 'trick_edit_video', methods: ['POST'])]
+    public function editVideo(string $trick_slug, int $video_id, Request $request, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $trick = $entityManager->getRepository(Trick::class)->findOneBy(['slug' => $trick_slug]);
+        if (!$trick) {
+            return new JsonResponse(['success' => false, 'message' => 'Trick not found.'], Response::HTTP_NOT_FOUND);
+        }
+
+        $video = $entityManager->getRepository(Video::class)->find($video_id);
+        if (!$video || $video->getTrick() !== $trick) {
+            return new JsonResponse(['success' => false, 'message' => 'Video not found or does not belong to this trick.'], Response::HTTP_NOT_FOUND);
+        }
+
+        // Decode JSON request body
+        $data = json_decode($request->getContent(), true);
+        if (!isset($data['embedCode']) || empty($data['embedCode'])) {
+            return new JsonResponse(['success' => false, 'message' => 'Invalid or missing video URL.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $newEmbedCode = $this->convertToEmbed($data['embedCode']); // Convert to embed format if needed
+
+        // Update the video with the new embed URL
+        $video->setEmbedCode($newEmbedCode);
+        $entityManager->flush();
+
+        return new JsonResponse(['success' => true]);
+    }
+
+    #[Route('/trick/{trick_slug}/delete-video/{video_id}', name: 'trick_delete_video', methods: ['GET'])]
+    public function deleteVideo(string $trick_slug, int $video_id, EntityManagerInterface $entityManager): Response
+    {
+        $trick = $entityManager->getRepository(Trick::class)->findOneBy(['slug' => $trick_slug]);
+        if (!$trick) {
+            throw $this->createNotFoundException('Trick not found.');
+        }
     
-         
+        $video = $entityManager->getRepository(Video::class)->find($video_id);
+        if (!$video || $video->getTrick() !== $trick) {
+            throw $this->createNotFoundException('Video not found or does not belong to this trick.');
+        }
+    
+        // Remove only the video without affecting the trick
+        $entityManager->remove($video);
+        $entityManager->flush();
+    
+        $this->addFlash('success', 'Vidéo supprimée avec succès.');
+        return $this->redirectToRoute('trick_details', ['slug' => $trick_slug]);
+    }       
 }

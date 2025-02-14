@@ -75,4 +75,9 @@ trick_edit_image:
         trick_slug: '[a-z0-9-]+'
         image_id: '\d+'
 
+trick_edit_video:
+    path: /trick/{trick_slug}/edit-video/{video_id}
+    controller: App\Controller\TrickController::editVideo
+    methods: [POST]
+
 

@@ -242,5 +242,64 @@ class TrickController extends AbstractController
     
         $this->addFlash('success', 'Vidéo supprimée avec succès.');
         return $this->redirectToRoute('trick_details', ['slug' => $trick_slug]);
-    }       
+    }
+
+    // Add an image media via AJAX
+    #[Route('/trick/{trick_slug}/add-media/image', name: 'trick_add_media_image', methods: ['POST'])]
+    public function addMediaImage(string $trick_slug, Request $request, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $trick = $entityManager->getRepository(Trick::class)->findOneBy(['slug' => $trick_slug]);
+        if (!$trick) {
+            return new JsonResponse(['success' => false, 'message' => 'Trick not found.'], Response::HTTP_NOT_FOUND);
+        }
+        // Ensure only the trick creator can add media
+        if ($trick->getCreator() !== $this->getUser()) {
+            return new JsonResponse(['success' => false, 'message' => 'Unauthorized.'], Response::HTTP_FORBIDDEN);
+        }
+    
+        $uploadedFile = $request->files->get('image');
+        if (!$uploadedFile instanceof UploadedFile) {
+            return new JsonResponse(['success' => false, 'message' => 'No image uploaded.'], Response::HTTP_BAD_REQUEST);
+        }
+    
+        $imageData = file_get_contents($uploadedFile->getPathname());
+        $illustration = new Illustration();
+        $illustration->setImageData($imageData);
+        $illustration->setTrick($trick);
+    
+        $entityManager->persist($illustration);
+        $entityManager->flush();
+    
+        return new JsonResponse(['success' => true]);
+    }
+    
+    // Add a video media via AJAX
+    #[Route('/trick/{trick_slug}/add-media/video', name: 'trick_add_media_video', methods: ['POST'])]
+    public function addMediaVideo(string $trick_slug, Request $request, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $trick = $entityManager->getRepository(Trick::class)->findOneBy(['slug' => $trick_slug]);
+        if (!$trick) {
+            return new JsonResponse(['success' => false, 'message' => 'Trick not found.'], Response::HTTP_NOT_FOUND);
+        }
+        // Ensure only the trick creator can add media
+        if ($trick->getCreator() !== $this->getUser()) {
+            return new JsonResponse(['success' => false, 'message' => 'Unauthorized.'], Response::HTTP_FORBIDDEN);
+        }
+    
+        $data = json_decode($request->getContent(), true);
+        if (!isset($data['embedCode']) || empty($data['embedCode'])) {
+            return new JsonResponse(['success' => false, 'message' => 'No video embed code provided.'], Response::HTTP_BAD_REQUEST);
+        }
+    
+        $embedCode = $this->convertToEmbed($data['embedCode']);
+    
+        $video = new Video();
+        $video->setEmbedCode($embedCode);
+        $video->setTrick($trick);
+    
+        $entityManager->persist($video);
+        $entityManager->flush();
+    
+        return new JsonResponse(['success' => true]);
+    }
 }

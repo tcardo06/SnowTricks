@@ -159,15 +159,61 @@
         {% endfor %}
     </div>
 
-    <!-- Delete Trick and Back Buttons -->
+    <!-- Delete Trick, Add Media, and Back Buttons -->
     <div class="mt-4 d-flex justify-content-between">
         {% if is_granted('IS_AUTHENTICATED_FULLY') and trick.creator == app.user %}
-            <a href="{{ path('trick_delete', {'slug': trick.slug}) }}" class="btn btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette figure ? Cette action est irréversible.');">Supprimer la figure</a>
+            <div>
+                <a href="{{ path('trick_delete', {'slug': trick.slug}) }}" class="btn btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette figure ? Cette action est irréversible.');">Supprimer la figure</a>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addMediaModal">Ajouter un média</button>
+            </div>
         {% endif %}
         <a href="{{ path('home') }}" class="btn btn-secondary">Retour à l'accueil</a>
     </div>
 
-    <!-- JavaScript for Handling Video and Image Editing -->
+    {# Add Media Modal #}
+    <div class="modal fade" id="addMediaModal" tabindex="-1" aria-labelledby="addMediaModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addMediaModalLabel">Ajouter un média</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Nav tabs -->
+                    <ul class="nav nav-tabs" id="addMediaTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="image-tab" data-bs-toggle="tab" data-bs-target="#imageTab" type="button" role="tab" aria-controls="imageTab" aria-selected="true">Image</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="video-tab" data-bs-toggle="tab" data-bs-target="#videoTab" type="button" role="tab" aria-controls="videoTab" aria-selected="false">Vidéo</button>
+                        </li>
+                    </ul>
+                    <div class="tab-content mt-3" id="addMediaTabContent">
+                        <div class="tab-pane fade show active" id="imageTab" role="tabpanel" aria-labelledby="image-tab">
+                            <form id="addImageForm">
+                                <div class="mb-3">
+                                    <label for="newImage" class="form-label">Sélectionnez une image</label>
+                                    <input type="file" class="form-control" id="newImage" name="image" accept="image/*" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Ajouter l'image</button>
+                            </form>
+                        </div>
+                        <div class="tab-pane fade" id="videoTab" role="tabpanel" aria-labelledby="video-tab">
+                            <form id="addVideoForm">
+                                <div class="mb-3">
+                                    <label for="newVideoUrl" class="form-label">Collez le code embed de la vidéo</label>
+                                    <textarea class="form-control" id="newVideoUrl" name="video" rows="3" required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Ajouter la vidéo</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript for Handling Video/Image Editing and Adding New Media -->
     <script>
     document.addEventListener('DOMContentLoaded', function () {
         // Video Editing
@@ -215,6 +261,50 @@
                       }
                   }).catch(error => console.error('Error:', error));
             });
+        });
+
+        // Add Image Media
+        document.getElementById('addImageForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            let fileInput = document.getElementById('newImage');
+            let file = fileInput.files[0];
+            if (!file) return;
+            let trickSlug = "{{ trick.slug }}";
+            let formData = new FormData();
+            formData.append('image', file);
+
+            fetch(`/trick/${trickSlug}/add-media/image`, {
+                method: 'POST',
+                body: formData
+            }).then(response => response.json())
+              .then(data => {
+                  if (data.success) {
+                      location.reload();
+                  } else {
+                      alert('Erreur: ' + data.message);
+                  }
+              }).catch(error => console.error('Error:', error));
+        });
+
+        // Add Video Media
+        document.getElementById('addVideoForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            let videoEmbed = document.getElementById('newVideoUrl').value;
+            if (!videoEmbed) return;
+            let trickSlug = "{{ trick.slug }}";
+
+            fetch(`/trick/${trickSlug}/add-media/video`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ embedCode: videoEmbed })
+            }).then(response => response.json())
+              .then(data => {
+                  if (data.success) {
+                      location.reload();
+                  } else {
+                      alert('Erreur: ' + data.message);
+                  }
+              }).catch(error => console.error('Error:', error));
         });
     });
     </script>

@@ -80,4 +80,15 @@ trick_edit_video:
     controller: App\Controller\TrickController::editVideo
     methods: [POST]
 
+trick_add_media_image:
+    path: /trick/{trick_slug}/add-media/image
+    controller: App\Controller\TrickController::addMediaImage
+    methods: [POST]
+
+trick_add_media_video:
+    path: /trick/{trick_slug}/add-media/video
+    controller: App\Controller\TrickController::addMediaVideo
+    methods: [POST]
+
+
 

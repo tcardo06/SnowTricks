@@ -21,7 +21,7 @@
                 <!-- Edit & Delete Buttons (Only for Logged-in Users) -->
                 {% if is_granted('IS_AUTHENTICATED_FULLY') %}
                     <div class="position-absolute top-0 end-0 p-2 d-flex">
-                        <a href="#" class="btn btn-sm btn-warning me-1">✏️</a>
+                        <a href="{{ path('trick_edit', { slug: trick.slug }) }}" class="btn btn-sm btn-warning me-1">✏️</a>
                         <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteTrickModal{{ trick.id }}">
                             ❌
                         </button>

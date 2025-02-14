@@ -90,5 +90,11 @@ trick_add_media_video:
     controller: App\Controller\TrickController::addMediaVideo
     methods: [POST]
 
+trick_edit:
+    path: /trick/{slug}/edit
+    controller: App\Controller\TrickController::edit
+    methods: [GET, POST]
+
+
 
 

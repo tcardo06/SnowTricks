@@ -302,4 +302,41 @@ class TrickController extends AbstractController
     
         return new JsonResponse(['success' => true]);
     }
+
+    #[Route('/trick/{slug}/edit', name: 'trick_edit', methods: ['GET', 'POST'])]
+    public function edit(string $slug, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        // Fetch the trick by slug
+        $trick = $entityManager->getRepository(Trick::class)->findOneBy(['slug' => $slug]);
+        if (!$trick) {
+            throw $this->createNotFoundException('Trick not found.');
+        }
+
+        // Ensure only the creator can edit the trick
+        if ($trick->getCreator() !== $this->getUser()) {
+            $this->addFlash('danger', 'Vous n’êtes pas autorisé à modifier cette figure.');
+            return $this->redirectToRoute('home');
+        }
+
+        // Create the form pre-filled with the current trick data
+        $form = $this->createForm(TrickType::class, $trick);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            // Regenerate slug in case the name changed
+            $newSlug = strtolower(trim(preg_replace('/[^a-z0-9]+/', '-', $trick->getName()), '-'));
+            $trick->setSlug($newSlug);
+
+            // Persist changes
+            $entityManager->flush();
+
+            $this->addFlash('success', 'La figure a été modifiée avec succès.');
+            return $this->redirectToRoute('trick_details', ['slug' => $trick->getSlug()]);
+        }
+
+        return $this->render('trick/edit.html.twig', [
+            'form'  => $form->createView(),
+            'trick' => $trick,
+        ]);
+    }
 }

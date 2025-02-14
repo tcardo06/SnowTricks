@@ -1,0 +1,31 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier la figure : {{ trick.name }}{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1 class="mb-4">Modifier la figure : {{ trick.name }}</h1>
+    
+    {{ form_start(form) }}
+        <div class="mb-3">
+            {{ form_label(form.name, 'Nom de la figure') }}
+            {{ form_widget(form.name, {'attr': {'class': 'form-control'}}) }}
+            {{ form_errors(form.name) }}
+        </div>
+        <div class="mb-3">
+            {{ form_label(form.description, 'Description') }}
+            {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': 4}}) }}
+            {{ form_errors(form.description) }}
+        </div>
+        <div class="mb-3">
+            {{ form_label(form.group_name, 'Groupe de la figure') }}
+            {{ form_widget(form.group_name, {'attr': {'class': 'form-control'}}) }}
+            {{ form_errors(form.group_name) }}
+        </div>
+        {# If you wish to allow editing images/videos, you can add those fields or link to separate functionality #}
+        <button type="submit" class="btn btn-primary">Enregistrer</button>
+    {{ form_end(form) }}
+
+    <a href="{{ path('trick_details', { slug: trick.slug }) }}" class="btn btn-secondary mt-3">Retour aux détails</a>
+</div>
+{% endblock %}

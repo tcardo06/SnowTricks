@@ -5,6 +5,8 @@ namespace App\Form;
 use App\Entity\User;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
+use Symfony\Component\Validator\Constraints\File;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -21,6 +23,22 @@ class RegistrationType extends AbstractType
             ])
             ->add('email', EmailType::class, [
                 'label' => 'Adresse e-mail',
+            ])
+            ->add('photo', FileType::class, [
+                'label' => 'Photo de profil (optionnel)',
+                'mapped' => false, // not stored directly in the User entity
+                'required' => false,
+                'constraints' => [
+                    new File([
+                        'maxSize' => '2048k',
+                        'mimeTypes' => [
+                            'image/jpeg',
+                            'image/png',
+                            'image/gif',
+                        ],
+                        'mimeTypesMessage' => 'Veuillez uploader une image valide (JPEG, PNG ou GIF).',
+                    ])
+                ],
             ])
             ->add('password', PasswordType::class, [
                 'label' => 'Mot de passe',

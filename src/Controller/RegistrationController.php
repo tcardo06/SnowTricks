@@ -15,6 +15,7 @@ use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
 
 class RegistrationController extends AbstractController
 {
@@ -27,21 +28,28 @@ class RegistrationController extends AbstractController
     ): Response {
         $user = new User();
         $form = $this->createForm(RegistrationType::class, $user);
-
+    
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             // Hash the password
             $hashedPassword = $passwordHasher->hashPassword($user, $user->getPassword());
             $user->setPassword($hashedPassword);
-
+    
             // Set the user as inactive
             $user->setIsActive(false);
-
+    
+            // Handle profile picture upload: store photo in database
+            $photoFile = $form->get('photo')->getData();
+            if ($photoFile) {
+                $photoData = file_get_contents($photoFile->getPathname());
+                $user->setPhoto($photoData);
+            }
+    
             try {
                 $em->persist($user);
                 $em->flush();
-
-                // Generate the token
+    
+                // Generate and send email verification token (existing logic)
                 $token = new Token();
                 $token->setUser($user)
                     ->setToken(bin2hex(random_bytes(32)))
@@ -49,8 +57,7 @@ class RegistrationController extends AbstractController
                     ->setExpiresAt((new \DateTime())->modify('+1 day'));
                 $em->persist($token);
                 $em->flush();
-
-                // Send verification email
+    
                 $email = (new TemplatedEmail())
                     ->from('no-reply@snowtricks.com')
                     ->to($user->getEmail())
@@ -61,19 +68,18 @@ class RegistrationController extends AbstractController
                         'validationLink' => $this->generateUrl('verify_email', ['token' => $token->getToken()], UrlGeneratorInterface::ABSOLUTE_URL),
                     ]);
                 $mailer->send($email);
-
+    
                 $this->addFlash('success', 'Un e-mail de confirmation vous a été envoyé.');
                 return $this->redirectToRoute('home');
             } catch (UniqueConstraintViolationException $e) {
-                // Handle duplicate email or username errors
                 $this->addFlash('error', 'Nom d\'utilisateur ou e-mail déjà utilisé.');
             }
         }
-
+    
         return $this->render('registration/register.html.twig', [
             'form' => $form->createView(),
         ]);
-    }
+    }    
 
     #[Route('/verifier-email/{token}', name: 'verify_email')]
     public function verifyEmail(string $token, EntityManagerInterface $em): Response

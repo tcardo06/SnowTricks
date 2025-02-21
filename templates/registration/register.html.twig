@@ -3,7 +3,7 @@
 {% block title %}Inscription{% endblock %}
 
 {% block body_class %}no-padding-body{% endblock %}
-{% block container_class %}{% endblock %} {# Removes mt-5 #}
+{% block container_class %}{% endblock %}
 
 {% block body %}
 <div class="d-flex justify-content-center align-items-center vh-100">
@@ -12,12 +12,15 @@
         <p class="text-center text-muted mb-4">
             Bienvenue sur le site SnowTricks ! Créez votre compte pour accéder à toutes nos fonctionnalités.
         </p>
-        {{ form_start(form, { 'attr': { 'class': 'needs-validation' } }) }}
+        {{ form_start(form, { 'attr': { 'class': 'needs-validation', 'novalidate': 'novalidate' } }) }}
             <div class="mb-3">
                 {{ form_row(form.username, { 'attr': { 'class': 'form-control', 'placeholder': 'Nom d\'utilisateur' } }) }}
             </div>
             <div class="mb-3">
                 {{ form_row(form.email, { 'attr': { 'class': 'form-control', 'placeholder': 'Adresse e-mail' } }) }}
+            </div>
+            <div class="mb-3">
+                {{ form_row(form.photo, { 'attr': { 'class': 'form-control' } }) }}
             </div>
             <div class="mb-4">
                 {{ form_row(form.password, { 'attr': { 'class': 'form-control', 'placeholder': 'Mot de passe' } }) }}

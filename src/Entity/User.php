@@ -48,6 +48,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private $photo;
 
     /**
+     * @ORM\Column(type="string", length=50, nullable=true)
+     */
+    private $photoMime;
+
+    /**
      * @ORM\Column(type="boolean")
      */
     private $isActive = false;
@@ -152,10 +157,47 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function getPhotoMime(): ?string
+    {
+        return $this->photoMime;
+    }
+
+    public function setPhotoMime(?string $photoMime): self
+    {
+        $this->photoMime = $photoMime;
+        return $this;
+    }
+
+
     public function getPhoto(): ?string
     {
-        return $this->photo;
+        if ($this->photo === null) {
+            return null;
+        }
+        // Check if photo is a resource and its type is "stream"
+        if (is_resource($this->photo) && get_resource_type($this->photo) === 'stream') {
+            return stream_get_contents($this->photo);
+        }
+        // Otherwise, assume it's already a string (even if stored as blob)
+        return (string) $this->photo;
+    }    
+     
+    public function getPhotoAsString(): ?string
+{
+    if ($this->photo === null) {
+        return null;
     }
+    if (is_resource($this->photo)) {
+        rewind($this->photo);
+        $contents = stream_get_contents($this->photo);
+        // Save the converted string so subsequent calls are safe
+        $this->photo = $contents;
+        return $contents;
+    }
+    // Force any non-null value to a string
+    return (string) $this->photo;
+}
+
 
     public function setPhoto(?string $photo): self
     {

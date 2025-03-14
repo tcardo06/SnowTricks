@@ -95,6 +95,18 @@ trick_edit:
     controller: App\Controller\TrickController::edit
     methods: [GET, POST]
 
+trick_post_message:
+    path: /trick/{slug}/message
+    controller: App\Controller\TrickController::postMessage
+    methods: [POST]
+
+user_photo:
+    path: /user/photo/{id}
+    controller: App\Controller\UserController::photo
+    methods: [GET]
+
+
+
 
 
 

@@ -3,29 +3,21 @@
 {% block title %}{{ trick.name }} - Details{% endblock %}
 
 {% block body %}
-<div class="container mt-4">
+<div class="container mt-4" style="padding-bottom: 80px;">
 
     <!-- Banner Image (First Image or Placeholder) -->
     <div class="trick-banner position-relative" style="background: url({% if trick.illustrations|length > 0 %}data:image/jpeg;base64,{{ trick.illustrations[0].getBase64Image() }}{% else %}{{ asset('images/placeholder.jpg') }}{% endif %}) no-repeat center center; background-size: cover; height: 300px; display: flex; align-items: center; justify-content: center;">
-        
         <h1 class="text-white text-center bg-dark bg-opacity-50 px-4 py-2 rounded">{{ trick.name }}</h1>
-
-        <!-- Buttons for Edit/Delete on First Image (Only for Logged-in Users) -->
         {% if is_granted('IS_AUTHENTICATED_FULLY') and trick.illustrations|length > 0 %}
             <div class="position-absolute top-0 end-0 p-2 d-flex">
-                <!-- Edit Banner Image -->
                 <label for="editBannerImage" class="btn btn-sm btn-warning me-1">✏️ Modifier</label>
                 <input type="file" id="editBannerImage" class="d-none" data-image-id="{{ trick.illustrations|first.id }}" data-trick-slug="{{ trick.slug }}">
-
-                <!-- Delete Banner Image -->
-                <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteBannerImageModal">
-                    ❌ Supprimer
-                </button>
+                <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteBannerImageModal">❌ Supprimer</button>
             </div>
         {% endif %}
     </div>
 
-    {# Delete Confirmation Modal for Banner Image (First Image) #}
+    {# Delete Confirmation Modal for Banner Image #}
     {% if is_granted('IS_AUTHENTICATED_FULLY') and trick.illustrations|length > 0 %}
         <div class="modal fade" id="deleteBannerImageModal" tabindex="-1" aria-labelledby="deleteBannerImageModalLabel" aria-hidden="true">
             <div class="modal-dialog">
@@ -56,24 +48,17 @@
     <!-- Media Gallery (Images + Videos) -->
     <div class="media-gallery d-flex flex-wrap justify-content-center mt-3">
         {% for illustration in trick.illustrations %}
-            {% if loop.index > 1 %} {# Skip first image since it's in the header #}
+            {% if loop.index > 1 %} {# Skip the banner image #}
                 <div class="position-relative mx-2">
                     <img src="data:image/jpeg;base64,{{ illustration.getBase64Image() }}" class="media-item img-thumbnail" />
-                    
-                    <!-- Edit & Delete Buttons (Only for Logged-in Users) -->
                     {% if is_granted('IS_AUTHENTICATED_FULLY') %}
                         <div class="position-absolute top-0 end-0 p-1 d-flex">
-                            <!-- Edit Image -->
                             <label for="editImage{{ illustration.id }}" class="btn btn-warning btn-sm me-1">✏️</label>
                             <input type="file" id="editImage{{ illustration.id }}" class="d-none" data-image-id="{{ illustration.id }}" data-trick-slug="{{ trick.slug }}">
-
-                            <!-- Delete Image -->
                             <button type="button" class="btn btn-danger btn-sm delete-media-btn" data-bs-toggle="modal" data-bs-target="#deleteImageModal{{ illustration.id }}">❌</button>
                         </div>
                     {% endif %}
                 </div>
-
-                <!-- Delete Confirmation Modal for each image -->
                 {% if is_granted('IS_AUTHENTICATED_FULLY') %}
                     <div class="modal fade" id="deleteImageModal{{ illustration.id }}" tabindex="-1" aria-labelledby="deleteImageModalLabel{{ illustration.id }}" aria-hidden="true">
                         <div class="modal-dialog">
@@ -101,20 +86,13 @@
                 <div class="media-item embed-responsive embed-responsive-16by9">
                     <iframe src="{{ video.embedCode }}" frameborder="0" allowfullscreen></iframe>
                 </div>
-
-                <!-- Edit & Delete Buttons (Only for Logged-in Users) -->
                 {% if is_granted('IS_AUTHENTICATED_FULLY') %}
                     <div class="position-absolute top-0 end-0 p-1 d-flex">
-                        <!-- Edit Video -->
                         <button type="button" class="btn btn-warning btn-sm me-1" data-bs-toggle="modal" data-bs-target="#editVideoModal{{ video.id }}">✏️</button>
-
-                        <!-- Delete Video -->
                         <button type="button" class="btn btn-danger btn-sm delete-media-btn" data-bs-toggle="modal" data-bs-target="#deleteVideoModal{{ video.id }}">❌</button>
                     </div>
                 {% endif %}
             </div>
-
-            <!-- Edit Video Modal -->
             {% if is_granted('IS_AUTHENTICATED_FULLY') %}
                 <div class="modal fade" id="editVideoModal{{ video.id }}" tabindex="-1" aria-labelledby="editVideoModalLabel{{ video.id }}" aria-hidden="true">
                     <div class="modal-dialog">
@@ -134,10 +112,6 @@
                         </div>
                     </div>
                 </div>
-            {% endif %}
-
-            <!-- Delete Video Modal -->
-            {% if is_granted('IS_AUTHENTICATED_FULLY') %}
                 <div class="modal fade" id="deleteVideoModal{{ video.id }}" tabindex="-1" aria-labelledby="deleteVideoModalLabel{{ video.id }}" aria-hidden="true">
                     <div class="modal-dialog">
                         <div class="modal-content">
@@ -159,12 +133,72 @@
         {% endfor %}
     </div>
 
-    <!-- Delete Trick, Add Media, and Back Buttons -->
-    <div class="mt-4 d-flex justify-content-between">
+    {# Discussion Section #}
+    <div class="discussion mt-5">
+        <h2>Discussion</h2>
+        
+        {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+            <form action="{{ path('trick_post_message', { slug: trick.slug }) }}" method="post" class="mb-4">
+                <div class="mb-3">
+                    <textarea name="message" class="form-control" rows="3" placeholder="Votre message" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Poster le message</button>
+            </form>
+        {% else %}
+            <p class="text-muted">Vous devez être connecté pour poster un message.</p>
+        {% endif %}
+
+        {% if messages is not empty %}
+            {% for message in messages %}
+                <div class="card mb-3">
+                    <div class="card-body d-flex">
+                        <div class="me-3">
+                            <img src="{{ path('user_photo', { 'id': message.user.id }) }}" alt="Photo de profil" class="rounded-circle" style="width:50px; height:50px;">
+                        </div>
+                        <div>
+                            <h6 class="mb-1">
+                                {{ message.user.fullName is not empty ? message.user.fullName : message.user.username }}
+                                <small class="text-muted"> - {{ message.createdAt|date('d/m/Y H:i') }}</small>
+                            </h6>
+                            <p class="mb-0">{{ message.content }}</p>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+
+            {# Pagination Controls #}
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    {% if currentPage > 1 %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ path('trick_details', { slug: trick.slug, page: currentPage - 1 }) }}">Précédent</a>
+                        </li>
+                    {% endif %}
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#">Page {{ currentPage }} sur {{ totalPages }}</a>
+                    </li>
+                    {% if currentPage < totalPages %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ path('trick_details', { slug: trick.slug, page: currentPage + 1 }) }}">Suivant</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% else %}
+            <p class="text-muted">Aucun message n'a encore été posté.</p>
+        {% endif %}
+    </div>
+
+    {# Bottom Buttons Section #}
+    <div class="mt-4 d-flex justify-content-between align-items-center">
         {% if is_granted('IS_AUTHENTICATED_FULLY') and trick.creator == app.user %}
             <div>
-                <a href="{{ path('trick_delete', {'slug': trick.slug}) }}" class="btn btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette figure ? Cette action est irréversible.');">Supprimer la figure</a>
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addMediaModal">Ajouter un média</button>
+                <a href="{{ path('trick_delete', { slug: trick.slug }) }}" class="btn btn-danger me-2" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette figure ? Cette action est irréversible.');">
+                    Supprimer la figure
+                </a>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addMediaModal">
+                    Ajouter un média
+                </button>
             </div>
         {% endif %}
         <a href="{{ path('home') }}" class="btn btn-secondary">Retour à l'accueil</a>
@@ -213,7 +247,7 @@
         </div>
     </div>
 
-    <!-- JavaScript for Handling Video/Image Editing and Adding New Media -->
+    {# JavaScript for Handling Editing, Adding Media, etc. #}
     <script>
     document.addEventListener('DOMContentLoaded', function () {
         // Video Editing
@@ -238,7 +272,7 @@
             });
         });
 
-        // Image Editing (Banner and Individual Images)
+        // Image Editing
         document.querySelectorAll('input[type="file"][id^="editImage"], input[type="file"][id="editBannerImage"]').forEach(input => {
             input.addEventListener('change', function () {
                 let imageId = this.getAttribute('data-image-id');
@@ -273,7 +307,7 @@
             let formData = new FormData();
             formData.append('image', file);
 
-            fetch(`/trick/${trickSlug}/add-media/image`, {
+            fetch(`/trick/${trick.slug}/add-media/image`, {
                 method: 'POST',
                 body: formData
             }).then(response => response.json())
@@ -293,7 +327,7 @@
             if (!videoEmbed) return;
             let trickSlug = "{{ trick.slug }}";
 
-            fetch(`/trick/${trickSlug}/add-media/video`, {
+            fetch(`/trick/${trick.slug}/add-media/video`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ embedCode: videoEmbed })
@@ -320,11 +354,9 @@
     align-items: center;
     justify-content: center;
 }
-
 .trick-banner h1 {
     text-shadow: 2px 2px 8px rgba(0,0,0,0.7);
 }
-
 /* Media Gallery */
 .media-gallery {
     display: flex;
@@ -332,20 +364,17 @@
     justify-content: center;
     gap: 10px;
 }
-
 .media-item {
     width: 300px;
     height: 200px;
     object-fit: cover;
     position: relative;
 }
-
 .media-item iframe {
     width: 100%;
     height: 100%;
 }
-
-/* Small Delete Button on Images & Videos */
+/* Small Edit & Delete Buttons */
 .delete-media-btn {
     width: 30px;
     height: 30px;

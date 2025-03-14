@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use App\Entity\Message;
 
 class TrickController extends AbstractController
 {
@@ -40,8 +41,8 @@ class TrickController extends AbstractController
             }
 
             // ✅ Generate Slug Before Saving
-            $slug = strtolower(trim(preg_replace('/[^a-z0-9]+/', '-', $trick->getName()), '-'));
-            $trick->setSlug($slug);
+            $slug = strtolower(trim(preg_replace('/[^a-z0-9]+/i', '-', $trick->getName()), '-'));
+            $trick->setSlug($slug);            
 
             // ✅ Persist Images
             $uploadedImages = $form->get('images')->getData();
@@ -134,18 +135,38 @@ class TrickController extends AbstractController
     }             
     
     #[Route('/trick/{slug}', name: 'trick_details', requirements: ['slug' => '[a-z0-9-]+'])]
-    public function details(string $slug, EntityManagerInterface $entityManager): Response
+    public function details(string $slug, Request $request, EntityManagerInterface $entityManager): Response
     {
         // Fetch trick by slug
         $trick = $entityManager->getRepository(Trick::class)->findOneBy(['slug' => $slug]);
     
-        // If trick is not found, throw a 404
         if (!$trick) {
             throw $this->createNotFoundException('Trick not found.');
         }
     
+        // Set up pagination for messages (10 per page)
+        $currentPage = $request->query->getInt('page', 1);
+        $limit = 10;
+        $offset = ($currentPage - 1) * $limit;
+    
+        // Retrieve messages for this trick, sorted from newest to oldest
+        $messageRepo = $entityManager->getRepository(Message::class);
+        $messages = $messageRepo->findBy(
+            ['trick' => $trick],
+            ['createdAt' => 'DESC'],
+            $limit,
+            $offset
+        );
+    
+        // Get the total number of messages for pagination
+        $totalMessages = $messageRepo->count(['trick' => $trick]);
+        $totalPages = ceil($totalMessages / $limit);
+    
         return $this->render('trick/details.html.twig', [
-            'trick' => $trick,
+            'trick'       => $trick,
+            'messages'    => $messages,
+            'currentPage' => $currentPage,
+            'totalPages'  => $totalPages,
         ]);
     }
     
@@ -338,5 +359,32 @@ class TrickController extends AbstractController
             'form'  => $form->createView(),
             'trick' => $trick,
         ]);
+    }
+    #[Route('/trick/{slug}/message', name: 'trick_post_message', methods: ['POST'])]
+    public function postMessage(string $slug, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $trick = $entityManager->getRepository(Trick::class)->findOneBy(['slug' => $slug]);
+        if (!$trick) {
+            throw $this->createNotFoundException('Trick not found.');
+        }
+        if (!$this->isGranted('IS_AUTHENTICATED_FULLY')) {
+            $this->addFlash('error', 'Vous devez être connecté pour poster un message.');
+            return $this->redirectToRoute('trick_details', ['slug' => $slug]);
+        }
+        $content = trim($request->request->get('message'));
+        if (empty($content)) {
+            $this->addFlash('error', 'Le message est obligatoire.');
+            return $this->redirectToRoute('trick_details', ['slug' => $slug]);
+        }
+        $message = new \App\Entity\Message();
+        $message->setContent($content);
+        $message->setTrick($trick);
+        $message->setUser($this->getUser());
+    
+        $entityManager->persist($message);
+        $entityManager->flush();
+    
+        $this->addFlash('success', 'Message posté avec succès.');
+        return $this->redirectToRoute('trick_details', ['slug' => $slug]);
     }    
 }

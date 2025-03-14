@@ -25,9 +25,9 @@ class RegistrationType extends AbstractType
                 'label' => 'Adresse e-mail',
             ])
             ->add('photo', FileType::class, [
-                'label' => 'Photo de profil (optionnel)',
-                'mapped' => false, // not stored directly in the User entity
-                'required' => false,
+                'label' => 'Photo de profil',
+                'mapped' => false,
+                'required' => true,
                 'constraints' => [
                     new File([
                         'maxSize' => '2048k',
@@ -39,7 +39,7 @@ class RegistrationType extends AbstractType
                         'mimeTypesMessage' => 'Veuillez uploader une image valide (JPEG, PNG ou GIF).',
                     ])
                 ],
-            ])
+            ])            
             ->add('password', PasswordType::class, [
                 'label' => 'Mot de passe',
             ])

@@ -43,7 +43,9 @@ class RegistrationController extends AbstractController
             if ($photoFile) {
                 $photoData = file_get_contents($photoFile->getPathname());
                 $user->setPhoto($photoData);
-            }
+                // Get and store the client MIME type (e.g., image/jpeg, image/png, etc.)
+                $user->setPhotoMime($photoFile->getClientMimeType());
+            }            
     
             try {
                 $em->persist($user);

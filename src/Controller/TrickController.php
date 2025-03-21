@@ -67,12 +67,9 @@ class TrickController extends AbstractController
         $entityManager->remove($trick);
         $entityManager->flush();
     
-        // Refresh the logged-in user to ensure it has its identifier.
-        $entityManager->refresh($this->getUser());
-        
         $this->addFlash('success', 'La figure a été supprimée avec succès.');
         return $this->redirectToRoute('home');
-    }
+    }     
     
     /**
      * Converts YouTube links into embed URLs.
@@ -109,10 +106,7 @@ class TrickController extends AbstractController
     public function deleteImage(string $trick_slug, int $image_id, EntityManagerInterface $entityManager): Response
     {
         $trick = $this->getTrickOr404($trick_slug, $entityManager);
-        $image = $entityManager->getRepository(Illustration::class)->find($image_id);
-        if (!$image || $image->getTrick() !== $trick) {
-            throw $this->createNotFoundException('Image not found or does not belong to this trick.');
-        }
+        $image = $this->getMediaOr404($entityManager, $trick, $image_id, Illustration::class);
         $entityManager->remove($image);
         $entityManager->flush();
         $this->addFlash('success', 'Image supprimée avec succès.');
@@ -123,10 +117,7 @@ class TrickController extends AbstractController
     public function editImage(string $trick_slug, int $image_id, Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         $trick = $this->getTrickOr404($trick_slug, $entityManager);
-        $image = $entityManager->getRepository(Illustration::class)->find($image_id);
-        if (!$image) {
-            return new JsonResponse(['success' => false, 'message' => 'Image not found.'], Response::HTTP_NOT_FOUND);
-        }
+        $image = $this->getMediaOr404($entityManager, $trick, $image_id, Illustration::class);
         $uploadedFile = $request->files->get('image');
         if ($uploadedFile instanceof UploadedFile) {
             $image->setImageData(file_get_contents($uploadedFile->getPathname()));
@@ -140,10 +131,7 @@ class TrickController extends AbstractController
     public function editVideo(string $trick_slug, int $video_id, Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         $trick = $this->getTrickOr404($trick_slug, $entityManager);
-        $video = $entityManager->getRepository(Video::class)->find($video_id);
-        if (!$video || $video->getTrick() !== $trick) {
-            return new JsonResponse(['success' => false, 'message' => 'Video not found or does not belong to this trick.'], Response::HTTP_NOT_FOUND);
-        }
+        $video = $this->getMediaOr404($entityManager, $trick, $video_id, Video::class);
         $data = json_decode($request->getContent(), true);
         if (!isset($data['embedCode']) || empty($data['embedCode'])) {
             return new JsonResponse(['success' => false, 'message' => 'Invalid or missing video URL.'], Response::HTTP_BAD_REQUEST);
@@ -157,10 +145,7 @@ class TrickController extends AbstractController
     public function deleteVideo(string $trick_slug, int $video_id, EntityManagerInterface $entityManager): Response
     {
         $trick = $this->getTrickOr404($trick_slug, $entityManager);
-        $video = $entityManager->getRepository(Video::class)->find($video_id);
-        if (!$video || $video->getTrick() !== $trick) {
-            throw $this->createNotFoundException('Video not found or does not belong to this trick.');
-        }
+        $video = $this->getMediaOr404($entityManager, $trick, $video_id, Video::class);
         $entityManager->remove($video);
         $entityManager->flush();
         $this->addFlash('success', 'Vidéo supprimée avec succès.');
@@ -244,7 +229,7 @@ class TrickController extends AbstractController
         $this->addFlash('success', 'Message posté avec succès.');
         return $this->redirectToRoute('trick_details', ['slug' => $slug]);
     }
-    
+
     // HELPER METHODS
 
     private function getTrickOr404(string $slug, EntityManagerInterface $entityManager): Trick
@@ -266,6 +251,17 @@ class TrickController extends AbstractController
             $this->addFlash('danger', 'Vous n’êtes pas autorisé à modifier cette figure.');
             throw $this->createAccessDeniedException();
         }
+    }
+
+    /** * Helper to retrieve a media entity (Illustration or Video) or throw a 404 if not found or not linked.*/
+    private function getMediaOr404(EntityManagerInterface $entityManager, Trick $trick, int $mediaId, string $mediaClass): object
+    {
+        $media = $entityManager->getRepository($mediaClass)->find($mediaId);
+        if (!$media || $media->getTrick() !== $trick) {
+            $mediaName = $mediaClass === Video::class ? 'Vidéo' : 'Image';
+            throw $this->createNotFoundException("$mediaName not found or does not belong to this trick.");
+        }
+        return $media;
     }
 
     private function processUploadedImages(Trick $trick, array $uploadedImages, EntityManagerInterface $entityManager): void

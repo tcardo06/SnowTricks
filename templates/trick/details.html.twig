@@ -307,17 +307,17 @@
             let formData = new FormData();
             formData.append('image', file);
 
-            fetch(`/trick/${trick.slug}/add-media/image`, {
+            fetch(`/trick/${trickSlug}/add-media/image`, {
                 method: 'POST',
                 body: formData
             }).then(response => response.json())
-              .then(data => {
-                  if (data.success) {
-                      location.reload();
-                  } else {
-                      alert('Erreur: ' + data.message);
-                  }
-              }).catch(error => console.error('Error:', error));
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Erreur: ' + data.message);
+                }
+            }).catch(error => console.error('Error:', error));
         });
 
         // Add Video Media
@@ -327,18 +327,18 @@
             if (!videoEmbed) return;
             let trickSlug = "{{ trick.slug }}";
 
-            fetch(`/trick/${trick.slug}/add-media/video`, {
+            fetch(`/trick/${trickSlug}/add-media/video`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ embedCode: videoEmbed })
             }).then(response => response.json())
-              .then(data => {
-                  if (data.success) {
-                      location.reload();
-                  } else {
-                      alert('Erreur: ' + data.message);
-                  }
-              }).catch(error => console.error('Error:', error));
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Erreur: ' + data.message);
+                }
+            }).catch(error => console.error('Error:', error));
         });
     });
     </script>

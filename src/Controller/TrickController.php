@@ -100,27 +100,31 @@ class TrickController extends AbstractController
     public function delete(string $slug, EntityManagerInterface $entityManager): Response
     {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
-
-        // Fetch trick
+    
+        // Fetch trick by slug
         $trick = $entityManager->getRepository(Trick::class)->findOneBy(['slug' => $slug]);
-
         if (!$trick) {
             throw $this->createNotFoundException('Trick not found.');
         }
-
-        // Ensure only the creator can delete the trick
-        if ($trick->getCreator() !== $this->getUser()) {
-            $this->addFlash('danger', 'Vous ne pouvez pas supprimer cette figure.');
+    
+        $user = $this->getUser();
+        if (!$user instanceof \App\Entity\User) {
+            throw new \LogicException('The logged-in user is not a valid User entity.');
+        }
+    
+        // Compare IDs to ensure the logged-in user is the creator
+        if ((int)$trick->getCreator()->getId() !== (int)$user->getId()) {
+            $this->addFlash('danger', 'Vous n’êtes pas autorisé à modifier cette figure.');
             return $this->redirectToRoute('home');
         }
-
+    
         // Remove trick and flush
         $entityManager->remove($trick);
         $entityManager->flush();
-
+    
         $this->addFlash('success', 'La figure a été supprimée avec succès.');
         return $this->redirectToRoute('home');
-    }
+    }    
     
     /**
      * Converts YouTube links into embed URLs.
@@ -327,14 +331,27 @@ class TrickController extends AbstractController
     #[Route('/trick/{slug}/edit', name: 'trick_edit', methods: ['GET', 'POST'])]
     public function edit(string $slug, Request $request, EntityManagerInterface $entityManager): Response
     {
-        // Fetch the trick by slug
-        $trick = $entityManager->getRepository(Trick::class)->findOneBy(['slug' => $slug]);
-        if (!$trick) {
-            throw $this->createNotFoundException('Trick not found.');
-        }
+    // Fetch the trick by slug
+    $trick = $entityManager->getRepository(Trick::class)->findOneBy(['slug' => $slug]);
+    if (!$trick) {
+        throw $this->createNotFoundException('Trick not found.');
+    }
+
+    $user = $this->getUser();
+    if (!$user instanceof \App\Entity\User) {
+        throw new \LogicException('The logged-in user is not a valid User entity.');
+    }
+
+    // Debugging: dump both objects and their IDs
+    dump('Creator:', $trick->getCreator());
+    dump('Logged-in User:', $user);
+    dump('Creator ID:', $trick->getCreator()->getId());
+    dump('User ID:', $user->getId());
+    // Uncomment the next line to stop execution so you can inspect the dumps.
+     //die();
     
-        // Ensure only the creator can edit the trick
-        if ($trick->getCreator() !== $this->getUser()) {
+        // Compare IDs to ensure the logged-in user is the creator
+        if ((int)$trick->getCreator()->getId() !== (int)$user->getId()) {
             $this->addFlash('danger', 'Vous n’êtes pas autorisé à modifier cette figure.');
             return $this->redirectToRoute('home');
         }
@@ -344,11 +361,9 @@ class TrickController extends AbstractController
         $form->handleRequest($request);
     
         if ($form->isSubmitted() && $form->isValid()) {
-            // Regenerate slug if name changed
-            $newSlug = strtolower(trim(preg_replace('/[^a-z0-9]+/', '-', $trick->getName()), '-'));
+            // Regenerate slug if name changed (using case-insensitive regex)
+            $newSlug = strtolower(trim(preg_replace('/[^a-z0-9]+/i', '-', $trick->getName()), '-'));
             $trick->setSlug($newSlug);
-    
-            // Persist changes
             $entityManager->flush();
     
             $this->addFlash('success', 'La figure a été modifiée avec succès.');
@@ -359,7 +374,8 @@ class TrickController extends AbstractController
             'form'  => $form->createView(),
             'trick' => $trick,
         ]);
-    }
+    }    
+
     #[Route('/trick/{slug}/message', name: 'trick_post_message', methods: ['POST'])]
     public function postMessage(string $slug, Request $request, EntityManagerInterface $entityManager): Response
     {

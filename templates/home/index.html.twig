@@ -1,14 +1,20 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}SnowTricks - Home{% endblock %}
+{% block title %}SnowTricks - Accueil{% endblock %}
 
 {% block body %}
-<h1 class="text-center my-4">Welcome to SnowTricks!</h1>
+<h1 class="text-center my-4">Bienvenue sur SnowTricks !</h1>
+
+{% if is_granted('IS_AUTHENTICATED_FULLY') %}
+    <div class="text-center mb-4">
+        <a href="{{ path('trick_create') }}" class="btn btn-success">Créer une figure</a>
+    </div>
+{% endif %}
 
 <div id="tricks-container" class="row row-cols-1 row-cols-md-3 g-4">
     {% for trick in tricks %}
         <div class="col">
-            <div class="card position-relative">
+            <div class="card position-relative h-100">
                 <!-- Display first trick image if available, otherwise use placeholder -->
                 <img src="{% if trick.illustrations|length > 0 %}
                             data:image/jpeg;base64,{{ trick.illustrations|first.getBase64Image() }}
@@ -18,8 +24,8 @@
                      class="card-img-top" 
                      alt="{{ trick.name }}">
 
-                <!-- Edit & Delete Buttons (Only for Logged-in Users) -->
-                {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+                <!-- Edit & Delete Buttons (Only for the trick's creator) -->
+                {% if is_granted('IS_AUTHENTICATED_FULLY') and trick.creator == app.user %}
                     <div class="position-absolute top-0 end-0 p-2 d-flex">
                         <a href="{{ path('trick_edit', { slug: trick.slug }) }}" class="btn btn-sm btn-warning me-1">✏️</a>
                         <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteTrickModal{{ trick.id }}">
@@ -28,17 +34,19 @@
                     </div>
                 {% endif %}
 
-                <div class="card-body">
+                <div class="card-body d-flex flex-column">
                     <h5 class="card-title">
                         <a href="{{ path('trick_details', { slug: trick.slug }) }}">{{ trick.name }}</a>
                     </h5>
-                    <p>{{ trick.description }}</p>
+                    <p class="card-text flex-grow-1">
+                        {{ trick.description|slice(0, 150) ~ (trick.description|length > 150 ? '...' : '') }}
+                    </p>
                 </div>
             </div>
         </div>
 
-        <!-- Delete Confirmation Modal -->
-        {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+        <!-- Delete Confirmation Modal (only for the trick's creator) -->
+        {% if is_granted('IS_AUTHENTICATED_FULLY') and trick.creator == app.user %}
             <div class="modal fade" id="deleteTrickModal{{ trick.id }}" tabindex="-1" aria-labelledby="deleteTrickModalLabel{{ trick.id }}" aria-hidden="true">
                 <div class="modal-dialog">
                     <div class="modal-content">
@@ -60,8 +68,8 @@
     {% endfor %}
 </div>
 
-<div class="text-center mt-4">
-    <button id="load-more" class="btn btn-primary" data-offset="15">Load More</button>
+<div class="text-center mt-4 mb-5">
+    <button id="load-more" class="btn btn-primary" data-offset="15">Charger plus</button>
 </div>
 
 <script>
@@ -74,24 +82,21 @@ document.getElementById('load-more').addEventListener('click', function () {
         .then(data => {
             const container = document.getElementById('tricks-container');
             container.insertAdjacentHTML('beforeend', data.html);
-
             button.setAttribute('data-offset', parseInt(offset) + 15);
-
             if (!data.hasMore) {
                 button.style.display = 'none';
             }
         })
-        .catch(error => console.error('Error loading more tricks:', error));
+        .catch(error => console.error('Erreur lors du chargement de nouvelles figures:', error));
 });
 </script>
 
 <style>
-/* Small Edit & Delete Buttons on Images */
+/* Small Edit & Delete Buttons on Cards */
 .card .position-absolute {
     top: 5px;
     right: 5px;
 }
-
 .card .btn-sm {
     width: 30px;
     height: 30px;
@@ -101,6 +106,16 @@ document.getElementById('load-more').addEventListener('click', function () {
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+/* Ensure all card bodies have a uniform height */
+.card-body {
+    min-height: 200px;
+}
+/* Force the description to truncate after a certain height */
+.card-body .card-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 </style>
 

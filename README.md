@@ -126,7 +126,7 @@ Pour des erreurs supplémentaires, consultez les logs d’Apache et les logs de 
 ## Remarques supplémentaires
 
 Jeu de données initiales :
-Les fixtures fournissent 20 figures de snowboard et un utilisateur admin. Vous pouvez modifier ces fichiers dans src/DataFixtures/UserFixtures.php et src/DataFixtures/TrickFixtures.php pour ajouter davantage de réalisme aux données (noms, descriptions, groupes, etc.).
+Les fixtures fournissent 20 figures de snowboard et un utilisateur admin. Vous pouvez modifier ces fichiers dans src/DataFixtures/UserFixtures.php et src/DataFixtures/TrickFixtures.php au besoin.
 
 Limitation de la taille des images :
 L'application limite la taille des images à 1,4 Mo via des contrôles côté client (JavaScript) et côté serveur (contrôles dans le formulaire).

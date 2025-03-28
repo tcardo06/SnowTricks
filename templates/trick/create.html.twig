@@ -51,27 +51,60 @@
     </div>
 </div>
 
+{# File Size Warning Modal #}
+<div class="modal fade" id="fileSizeModal" tabindex="-1" aria-labelledby="fileSizeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="fileSizeModalLabel">Fichier trop volumineux</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                L'image sélectionnée dépasse la taille maximale autorisée de 1,4 Mo.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const videoContainer = document.getElementById('video-fields');
-        const addVideoButton = document.getElementById('add-video');
-        let index = {{ form.videos|length }}; // Track the number of inputs
-        const prototypeTemplate = `{{ videoPrototype|e('js') }}`;
-
-        addVideoButton.addEventListener('click', function () {
-            const newForm = prototypeTemplate.replace(/__name__/g, index);
-            const div = document.createElement('div');
-            div.classList.add('d-flex', 'align-items-center', 'mb-2');
-            div.innerHTML = newForm + '<button type="button" class="btn btn-danger btn-sm ms-2 remove-video">X</button>';
-            videoContainer.appendChild(div);
-            index++;
-        });
-
-        videoContainer.addEventListener('click', function (event) {
-            if (event.target.classList.contains('remove-video')) {
-                event.target.parentElement.remove();
+document.addEventListener('DOMContentLoaded', function () {
+    // File Size Check for all file inputs (1,4 Mo limit)
+    const maxSize = 1.4 * 1024 * 1024; // 1.4 Mo in bytes
+    document.querySelectorAll('input[type="file"]').forEach(function(input) {
+        input.addEventListener('change', function () {
+            if (this.files && this.files[0]) {
+                if (this.files[0].size > maxSize) {
+                    let fileSizeModal = new bootstrap.Modal(document.getElementById('fileSizeModal'));
+                    fileSizeModal.show();
+                    this.value = "";
+                }
             }
         });
     });
+
+    // Video prototype management for adding videos dynamically
+    const videoContainer = document.getElementById('video-fields');
+    const addVideoButton = document.getElementById('add-video');
+    let index = {{ form.videos|length }};
+    const prototypeTemplate = `{{ videoPrototype|e('js') }}`;
+
+    addVideoButton.addEventListener('click', function () {
+        const newForm = prototypeTemplate.replace(/__name__/g, index);
+        const div = document.createElement('div');
+        div.classList.add('d-flex', 'align-items-center', 'mb-2');
+        div.innerHTML = newForm + '<button type="button" class="btn btn-danger btn-sm ms-2 remove-video">X</button>';
+        videoContainer.appendChild(div);
+        index++;
+    });
+
+    videoContainer.addEventListener('click', function (event) {
+        if (event.target.classList.contains('remove-video')) {
+            event.target.parentElement.remove();
+        }
+    });
+});
 </script>
 {% endblock %}

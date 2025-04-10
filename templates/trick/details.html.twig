@@ -148,15 +148,12 @@
 
     <div class="discussion mt-5">
         <h2>Discussion</h2>
-
         {% if is_granted('IS_AUTHENTICATED_FULLY') %}
-            {# Le formulaire pour poster un message #}
             {{ form_start(messageForm, {
                 'attr': {
                     'class': 'd-flex align-items-center gap-2 mb-3'
                 }
             }) }}
-                {# Champ de texte #}
                 {{ form_widget(messageForm.content, {
                     'label': false,
                     'attr': {
@@ -165,7 +162,6 @@
                     }
                 }) }}
 
-                {# Bouton d'envoi #}
                 {{ form_widget(messageForm.submit, {
                     'attr': {
                         'class': 'btn btn-primary px-4 py-2', 
@@ -182,8 +178,7 @@
             {% for message in messages %}
                 <div class="card mb-3">
                     <div class="card-body d-flex p-2"> 
-                        {# On réduit les paddings/margins pour rapprocher du bord gauche #}
-                        <div class="me-2"> {# Au lieu de me-3 #}
+                        <div class="me-2">
                             <img src="{{ path('user_photo', { 'id': message.user.id }) }}"
                                 alt="Photo de profil"
                                 class="rounded-circle"

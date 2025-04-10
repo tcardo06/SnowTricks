@@ -46,7 +46,7 @@ trick_delete:
     methods: [GET]
     requirements:
         slug: '[a-z0-9-]+'
-    
+
 trick_details:
     path: /trick/{slug}
     controller: App\Controller\TrickController::details
@@ -54,59 +54,67 @@ trick_details:
     requirements:
         slug: '[a-z0-9-]+'
 
-trick_delete_image:
-    path: /trick/{trick_slug}/delete-image/{image_id}
-    controller: App\Controller\TrickController::deleteImage
-    methods: [GET]
-    requirements:
-        trick_slug: '[a-z0-9-]+'
-        image_id: '\d+'
-
-trick_delete_video:
-    path: /trick/{trick_slug}/delete-video/{video_id}
-    controller: App\Controller\TrickController::deleteVideo
-    methods: [GET]
-
-trick_edit_image:
-    path: /trick/{trick_slug}/edit-image/{image_id}
-    controller: App\Controller\TrickController::editImage
-    methods: [POST]
-    requirements:
-        trick_slug: '[a-z0-9-]+'
-        image_id: '\d+'
-
-trick_edit_video:
-    path: /trick/{trick_slug}/edit-video/{video_id}
-    controller: App\Controller\TrickController::editVideo
-    methods: [POST]
-
-trick_add_media_image:
-    path: /trick/{trick_slug}/add-media/image
-    controller: App\Controller\TrickController::addMediaImage
-    methods: [POST]
-
-trick_add_media_video:
-    path: /trick/{trick_slug}/add-media/video
-    controller: App\Controller\TrickController::addMediaVideo
-    methods: [POST]
-
 trick_edit:
     path: /trick/{slug}/edit
     controller: App\Controller\TrickController::edit
     methods: [GET, POST]
+    requirements:
+        slug: '[a-z0-9-]+'
 
 trick_post_message:
     path: /trick/{slug}/message
     controller: App\Controller\TrickController::postMessage
     methods: [POST]
+    requirements:
+        slug: '[a-z0-9-]+'
+
+media_delete_image:
+    path: /trick/{trick_slug}/delete-image/{image_id}
+    controller: App\Controller\MediaController::deleteImage
+    methods: [GET]
+    requirements:
+        trick_slug: '[a-z0-9-]+'
+        image_id: '\d+'
+
+media_edit_image:
+    path: /trick/{trick_slug}/edit-image/{image_id}
+    controller: App\Controller\MediaController::editImage
+    methods: [POST]
+    requirements:
+        trick_slug: '[a-z0-9-]+'
+        image_id: '\d+'
+
+media_add_image:
+    path: /trick/{trick_slug}/add-media/image
+    controller: App\Controller\MediaController::addMediaImage
+    methods: [POST]
+    requirements:
+        trick_slug: '[a-z0-9-]+'
+
+media_delete_video:
+    path: /trick/{trick_slug}/delete-video/{video_id}
+    controller: App\Controller\MediaController::deleteVideo
+    methods: [GET]
+    requirements:
+        trick_slug: '[a-z0-9-]+'
+        video_id: '\d+'
+
+media_edit_video:
+    path: /trick/{trick_slug}/edit-video/{video_id}
+    controller: App\Controller\MediaController::editVideo
+    methods: [POST]
+    requirements:
+        trick_slug: '[a-z0-9-]+'
+        video_id: '\d+'
+
+media_add_video:
+    path: /trick/{trick_slug}/add-media/video
+    controller: App\Controller\MediaController::addMediaVideo
+    methods: [POST]
+    requirements:
+        trick_slug: '[a-z0-9-]+'
 
 user_photo:
     path: /user/photo/{id}
     controller: App\Controller\UserController::photo
     methods: [GET]
-
-
-
-
-
-

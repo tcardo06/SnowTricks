@@ -31,7 +31,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                        <a href="{{ path('trick_delete_image', { 'trick_slug': trick.slug, 'image_id': trick.illustrations|first.id }) }}" class="btn btn-danger">Supprimer</a>
+                        <a href="{{ path('media_delete_image', { 'trick_slug': trick.slug, 'image_id': trick.illustrations|first.id }) }}" class="btn btn-danger">Supprimer</a>
                     </div>
                 </div>
             </div>
@@ -72,7 +72,7 @@
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                                    <a href="{{ path('trick_delete_image', { 'trick_slug': trick.slug, 'image_id': illustration.id }) }}" class="btn btn-danger">Supprimer</a>
+                                    <a href="{{ path('media_delete_image', { 'trick_slug': trick.slug, 'image_id': illustration.id }) }}" class="btn btn-danger">Supprimer</a>
                                 </div>
                             </div>
                         </div>
@@ -130,7 +130,7 @@
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                                <a href="{{ path('trick_delete_video', { 'trick_slug': trick.slug, 'video_id': video.id }) }}" class="btn btn-danger">Supprimer</a>
+                                <a href="{{ path('media_delete_video', { 'trick_slug': trick.slug, 'video_id': video.id }) }}" class="btn btn-danger">Supprimer</a>
                             </div>
                         </div>
                     </div>
@@ -199,9 +199,6 @@
     <div class="mt-4 d-flex justify-content-between align-items-center">
         {% if is_granted('IS_AUTHENTICATED_FULLY') and trick.creator == app.user %}
             <div>
-                <button type="button" class="btn btn-danger me-2" data-bs-toggle="modal" data-bs-target="#deleteTrickModal">
-                    Supprimer la figure
-                </button>
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addMediaModal">
                     Ajouter un média
                 </button>
@@ -209,27 +206,6 @@
         {% endif %}
         <a href="{{ path('home') }}" class="btn btn-secondary">Retour à l'accueil</a>
     </div>
-
-    {# Delete Trick Modal (Bootstrap style) #}
-    {% if is_granted('IS_AUTHENTICATED_FULLY') and trick.creator == app.user %}
-        <div class="modal fade" id="deleteTrickModal" tabindex="-1" aria-labelledby="deleteTrickModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="deleteTrickModalLabel">Confirmer la suppression</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        Êtes-vous sûr de vouloir supprimer la figure "<strong>{{ trick.name }}</strong>" ? Cette action est irréversible.
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                        <a href="{{ path('trick_delete', { slug: trick.slug }) }}" class="btn btn-danger">Supprimer</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    {% endif %}
 
     {# Add Media Modal #}
     <div class="modal fade" id="addMediaModal" tabindex="-1" aria-labelledby="addMediaModalLabel" aria-hidden="true">

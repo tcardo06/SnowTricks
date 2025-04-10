@@ -53,23 +53,25 @@ class TrickController extends AbstractController
          return $this->render('trick/create.html.twig', ['form' => $form->createView()]);
     }
 
-    /**
-     * Utilisation du ParamConverter pour injecter directement le Trick.
-     *
-     * @ParamConverter("trick", class="App\Entity\Trick", options={"mapping": {"slug": "slug"}})
-     */
     #[Route('/trick/{slug}', name: 'trick_details')]
     public function details(Trick $trick, Request $request): Response
     {
-         $currentPage = $request->query->getInt('page', 1);
-         list($messages, $currentPage, $totalPages) = $this->messageManager->getMessagesForTrick($trick, $currentPage);
-         return $this->render('trick/details.html.twig', [
-              'trick'       => $trick,
-              'messages'    => $messages,
-              'currentPage' => $currentPage,
-              'totalPages'  => $totalPages,
-         ]);
-    }
+        $currentPage = $request->query->getInt('page', 1);
+        list($messages, $currentPage, $totalPages) = $this->messageManager->getMessagesForTrick($trick, $currentPage);
+    
+        $message = new \App\Entity\Message();
+        $form = $this->createForm(\App\Form\MessageType::class, $message, [
+             'action' => $this->generateUrl('trick_post_message', ['slug' => $trick->getSlug()])
+        ]);
+    
+        return $this->render('trick/details.html.twig', [
+             'trick'       => $trick,
+             'messages'    => $messages,
+             'currentPage' => $currentPage,
+             'totalPages'  => $totalPages,
+             'messageForm' => $form->createView(),
+        ]);
+    }      
 
     #[Route('/trick/{slug}/edit', name: 'trick_edit', methods: ['GET', 'POST'])]
     public function edit(string $slug, Request $request): Response
@@ -110,20 +112,38 @@ class TrickController extends AbstractController
     #[Route('/trick/{slug}/message', name: 'trick_post_message')]
     public function postMessage(string $slug, Request $request): Response
     {
-         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
-         $trick = $this->trickManager->getTrickBySlug($slug);
-         if (!$trick) {
-              throw $this->createNotFoundException('Figure non trouvée.');
-         }
-         $content = trim($request->request->get('message'));
-         if (empty($content)) {
-              $this->addFlash('danger', 'Le message est obligatoire.');
-              return $this->redirectToRoute('trick_details', ['slug' => $slug]);
-         }
-         $this->messageManager->postMessage($trick, $this->getUser(), $content);
-         $this->addFlash('success', 'Message posté avec succès.');
-         return $this->redirectToRoute('trick_details', ['slug' => $slug]);
-    }
+        $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
+    
+        $trick = $this->trickManager->getTrickBySlug($slug);
+        if (!$trick) {
+             throw $this->createNotFoundException('Figure non trouvée.');
+        }
+    
+        $message = new \App\Entity\Message();
+        $form = $this->createForm(\App\Form\MessageType::class, $message);
+        $form->handleRequest($request);
+    
+        if ($form->isSubmitted() && $form->isValid()) {
+             // Attribuer le Trick et l'utilisateur, car ces champs ne sont pas mappés par le formulaire
+             $message->setTrick($trick);
+             $message->setUser($this->getUser());
+    
+             $this->messageManager->postMessage($trick, $this->getUser(), $message->getContent());
+             $this->addFlash('success', 'Message posté avec succès.');
+             return $this->redirectToRoute('trick_details', ['slug' => $slug]);
+        }
+    
+        $currentPage = $request->query->getInt('page', 1);
+        list($messages, $currentPage, $totalPages) = $this->messageManager->getMessagesForTrick($trick, $currentPage);
+    
+        return $this->render('trick/details.html.twig', [
+             'trick'       => $trick,
+             'messages'    => $messages,
+             'currentPage' => $currentPage,
+             'totalPages'  => $totalPages,
+             'messageForm' => $form->createView(),
+        ]);
+    }   
 
     /**
      * Vérifie que l'utilisateur connecté est bien le créateur de la figure.

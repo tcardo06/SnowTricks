@@ -17,7 +17,6 @@ class TrickType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
-        // Always add basic fields
         $builder
             ->add('name', TextType::class, [
                 'label' => 'Nom de la figure',

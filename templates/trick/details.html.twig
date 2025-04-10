@@ -17,7 +17,7 @@
         {% endif %}
     </div>
 
-    {# Delete Confirmation Modal for Banner Image #}
+    {# Delete Confirmation Modal for Banner Image (mise à jour de la route) #}
     {% if is_granted('IS_AUTHENTICATED_FULLY') and trick.illustrations|length > 0 %}
         <div class="modal fade" id="deleteBannerImageModal" tabindex="-1" aria-labelledby="deleteBannerImageModalLabel" aria-hidden="true">
             <div class="modal-dialog">
@@ -31,6 +31,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        {# Utilise désormais la route "media_delete_image" #}
                         <a href="{{ path('media_delete_image', { 'trick_slug': trick.slug, 'image_id': trick.illustrations|first.id }) }}" class="btn btn-danger">Supprimer</a>
                     </div>
                 </div>
@@ -55,6 +56,7 @@
                         <div class="position-absolute top-0 end-0 p-1 d-flex">
                             <label for="editImage{{ illustration.id }}" class="btn btn-warning btn-sm me-1">✏️</label>
                             <input type="file" id="editImage{{ illustration.id }}" class="d-none" data-image-id="{{ illustration.id }}" data-trick-slug="{{ trick.slug }}">
+                            {# Utilise la route "media_delete_image" pour supprimer l'image #}
                             <button type="button" class="btn btn-danger btn-sm delete-media-btn" data-bs-toggle="modal" data-bs-target="#deleteImageModal{{ illustration.id }}">❌</button>
                         </div>
                     {% endif %}
@@ -72,6 +74,7 @@
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                    {# Nouvelle route pour suppression d'image #}
                                     <a href="{{ path('media_delete_image', { 'trick_slug': trick.slug, 'image_id': illustration.id }) }}" class="btn btn-danger">Supprimer</a>
                                 </div>
                             </div>
@@ -94,7 +97,9 @@
                 </div>
                 {% if is_granted('IS_AUTHENTICATED_FULLY') %}
                     <div class="position-absolute top-0 end-0 p-1 d-flex">
+                        {# Pour éditer la vidéo, on utilisera la route "media_edit_video" via JS #}
                         <button type="button" class="btn btn-warning btn-sm me-1" data-bs-toggle="modal" data-bs-target="#editVideoModal{{ video.id }}">✏️</button>
+                        {# Pour supprimer la vidéo, utilisez la route "media_delete_video" #}
                         <button type="button" class="btn btn-danger btn-sm delete-media-btn" data-bs-toggle="modal" data-bs-target="#deleteVideoModal{{ video.id }}">❌</button>
                     </div>
                 {% endif %}
@@ -113,6 +118,7 @@
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                {# Bouton de sauvegarde vidéo appellera la route "media_edit_video" via JS #}
                                 <button type="button" class="btn btn-primary save-video-btn" data-video-id="{{ video.id }}" data-trick-slug="{{ trick.slug }}">Enregistrer</button>
                             </div>
                         </div>
@@ -130,6 +136,7 @@
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                                {# Nouvelle route pour suppression de vidéo #}
                                 <a href="{{ path('media_delete_video', { 'trick_slug': trick.slug, 'video_id': video.id }) }}" class="btn btn-danger">Supprimer</a>
                             </div>
                         </div>
@@ -139,53 +146,82 @@
         {% endfor %}
     </div>
 
-    {# Discussion Section #}
     <div class="discussion mt-5">
         <h2>Discussion</h2>
-        
+
         {% if is_granted('IS_AUTHENTICATED_FULLY') %}
-            <form action="{{ path('trick_post_message', { slug: trick.slug }) }}" method="post" class="mb-4">
-                <div class="mb-3">
-                    <textarea name="message" class="form-control" rows="3" placeholder="Votre message" required></textarea>
-                </div>
-                <button type="submit" class="btn btn-primary">Poster le message</button>
-            </form>
+            {# Le formulaire pour poster un message #}
+            {{ form_start(messageForm, {
+                'attr': {
+                    'class': 'd-flex align-items-center gap-2 mb-3'
+                }
+            }) }}
+                {# Champ de texte #}
+                {{ form_widget(messageForm.content, {
+                    'label': false,
+                    'attr': {
+                        'class': 'form-control',
+                        'placeholder': 'Tapez votre message ici...'
+                    }
+                }) }}
+
+                {# Bouton d'envoi #}
+                {{ form_widget(messageForm.submit, {
+                    'attr': {
+                        'class': 'btn btn-primary px-4 py-2', 
+                        'style': 'height: auto;'
+                    }
+                }) }}
+            {{ form_end(messageForm) }}
         {% else %}
             <p class="text-muted">Vous devez être connecté pour poster un message.</p>
         {% endif %}
 
+        {# Liste des messages déjà postés #}
         {% if messages is not empty %}
             {% for message in messages %}
                 <div class="card mb-3">
-                    <div class="card-body d-flex">
-                        <div class="me-3">
-                            <img src="{{ path('user_photo', { 'id': message.user.id }) }}" alt="Photo de profil" class="rounded-circle" style="width:50px; height:50px;">
+                    <div class="card-body d-flex p-2"> 
+                        {# On réduit les paddings/margins pour rapprocher du bord gauche #}
+                        <div class="me-2"> {# Au lieu de me-3 #}
+                            <img src="{{ path('user_photo', { 'id': message.user.id }) }}"
+                                alt="Photo de profil"
+                                class="rounded-circle"
+                                style="width:50px; height:50px;">
                         </div>
                         <div>
-                            <h6 class="mb-1">
+                            <small class="text-muted d-block">
                                 {{ message.user.fullName is not empty ? message.user.fullName : message.user.username }}
-                                <small class="text-muted"> - {{ message.createdAt|date('d/m/Y H:i') }}</small>
-                            </h6>
-                            <p class="mb-0">{{ message.content }}</p>
+                                – {{ message.createdAt|date('d/m/Y H:i') }}
+                            </small>
+                            <p class="mb-1">{{ message.content }}</p>
                         </div>
                     </div>
                 </div>
             {% endfor %}
 
-            {# Pagination Controls #}
+            {# Pagination #}
             <nav aria-label="Page navigation">
                 <ul class="pagination justify-content-center">
                     {% if currentPage > 1 %}
                         <li class="page-item">
-                            <a class="page-link" href="{{ path('trick_details', { slug: trick.slug, page: currentPage - 1 }) }}">Précédent</a>
+                            <a class="page-link"
+                            href="{{ path('trick_details', { slug: trick.slug, page: currentPage - 1 }) }}">
+                            Précédent
+                            </a>
                         </li>
                     {% endif %}
                     <li class="page-item disabled">
-                        <a class="page-link" href="#">Page {{ currentPage }} sur {{ totalPages }}</a>
+                        <a class="page-link" href="#">
+                            Page {{ currentPage }} sur {{ totalPages }}
+                        </a>
                     </li>
                     {% if currentPage < totalPages %}
                         <li class="page-item">
-                            <a class="page-link" href="{{ path('trick_details', { slug: trick.slug, page: currentPage + 1 }) }}">Suivant</a>
+                            <a class="page-link"
+                            href="{{ path('trick_details', { slug: trick.slug, page: currentPage + 1 }) }}">
+                            Suivant
+                            </a>
                         </li>
                     {% endif %}
                 </ul>
@@ -195,7 +231,6 @@
         {% endif %}
     </div>
 
-    {# Bottom Buttons Section #}
     <div class="mt-4 d-flex justify-content-between align-items-center">
         {% if is_granted('IS_AUTHENTICATED_FULLY') and trick.creator == app.user %}
             <div>

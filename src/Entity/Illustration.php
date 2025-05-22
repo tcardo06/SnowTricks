@@ -23,7 +23,7 @@ class Illustration
     private $imageData;
 
     /**
-     * @ORM\ManyToOne(targetEntity=Trick::class, inversedBy="illustrations")
+     * @ORM\ManyToOne(targetEntity=Trick::class, inversedBy="illustrations", cascade={"persist"})
      * @ORM\JoinColumn(nullable=false)
      */
     private $trick;
@@ -41,7 +41,7 @@ class Illustration
     public function getImageData(): ?string
     {
         return $this->imageData ? stream_get_contents($this->imageData) : null;
-    }    
+    }
 
     public function setImageData($imageData): self
     {
@@ -60,4 +60,3 @@ class Illustration
         return $this;
     }
 }
-

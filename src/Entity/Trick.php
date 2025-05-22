@@ -217,7 +217,7 @@ class Trick
             }
         }
         return $this;
-    }    
+    }
 
     public function getMessages(): Collection
     {

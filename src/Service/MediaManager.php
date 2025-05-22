@@ -1,5 +1,4 @@
 <?php
-// src/Service/MediaManager.php
 
 namespace App\Service;
 

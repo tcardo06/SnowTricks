@@ -88,14 +88,67 @@ class TrickManager
         return true; // Indicating the edit was successful
     }
 
+    /**
+     * Deletes a Trick from the database.
+     */
     public function deleteTrick(Trick $trick): void
     {
         $this->em->remove($trick);
         $this->em->flush();
     }
 
+    /**
+     * Gets a Trick by its slug.
+     *
+     * @return Trick|null
+     */
     public function getTrickBySlug(string $slug): ?Trick
     {
         return $this->em->getRepository(Trick::class)->findOneBy(['slug' => $slug]);
+    }
+
+    /**
+     * Retrieves a paginated list of tricks.
+     */
+    public function getPaginatedTricks(int $limit, int $offset): array
+    {
+        return $this->em->getRepository(Trick::class)
+            ->createQueryBuilder('t')
+            ->setFirstResult($offset)
+            ->setMaxResults($limit)
+            ->orderBy('t.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Generates the HTML for a list of tricks.
+     *
+     * @param Trick[] $tricks
+     * @return string
+     */
+    public function generateTrickHtml(array $tricks): string
+    {
+        $html = '';
+        foreach ($tricks as $trick) {
+            $html .= sprintf(
+                '<div class="col">
+                    <div class="card">
+                        <img src="/images/placeholder.jpg" class="card-img-top" alt="%s">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <a href="%s">%s</a>
+                            </h5>
+                            <p>%s</p>
+                        </div>
+                    </div>
+                </div>',
+                htmlspecialchars($trick->getName(), ENT_QUOTES),
+                '/trick/' . $trick->getSlug(),
+                htmlspecialchars($trick->getName(), ENT_QUOTES),
+                htmlspecialchars($trick->getDescription(), ENT_QUOTES)
+            );
+        }
+        return $html;
     }
 }
